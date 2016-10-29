@@ -124,7 +124,7 @@ public class ScrollingActivity extends AppCompatActivity {
                     AuthorizationRequest.RESPONSE_TYPE_CODE,
                     redirectUri
             );
-            builder.setScopes("profile");
+            builder.setScope("https://www.googleapis.com/auth/youtube.readonly");
             AuthorizationRequest request = builder.build();
 
 
@@ -276,8 +276,12 @@ public class ScrollingActivity extends AppCompatActivity {
                         @Override
                         protected JSONObject doInBackground(String... tokens) {
                             OkHttpClient client = new OkHttpClient();
+                            //Request request = new Request.Builder()
+                            //        .url("https://www.googleapis.com/oauth2/v3/userinfo")
+                            //        .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
+                            //        .build();
                             Request request = new Request.Builder()
-                                    .url("https://www.googleapis.com/oauth2/v3/userinfo")
+                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=id&mine=true&key="+"")
                                     .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
                                     .build();
 

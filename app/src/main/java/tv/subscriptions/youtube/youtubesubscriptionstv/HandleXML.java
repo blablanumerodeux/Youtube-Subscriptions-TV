@@ -16,10 +16,19 @@ public class HandleXML {
     private String urlString = null;
     private XmlPullParserFactory xmlFactoryObject;
     public volatile boolean parsingComplete = true;
+    public ArrayList<String> listAllVideosInMySubs = new ArrayList<String>();
     private ArrayList<String> listVideos = new ArrayList<String>();
 
     public HandleXML(String url){
         this.urlString = url;
+    }
+
+    public void setUrlString(String urlString) {
+        this.urlString = urlString;
+    }
+
+    public String getUrlString() {
+        return urlString;
     }
 
     public void parseXMLAndStoreIt(XmlPullParser myParser) {
@@ -68,13 +77,7 @@ public class HandleXML {
 
             parsingComplete = false;
 
-            StringBuilder url = new StringBuilder();
-            for (String s : listVideos) {
-                url.append(",");
-                url.append(s);
-            }
-
-            Log.i("APP", "http://www.youtube.com/watch_videos?video_ids=" + url.toString());
+            this.listAllVideosInMySubs.addAll(listVideos);
         }
         catch (Exception e) {
             e.printStackTrace();

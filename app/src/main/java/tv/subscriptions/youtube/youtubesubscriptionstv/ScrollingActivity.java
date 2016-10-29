@@ -28,8 +28,11 @@ import net.openid.appauth.AuthorizationService;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.TokenResponse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -38,8 +41,6 @@ import okhttp3.Response;
 
 public class ScrollingActivity extends AppCompatActivity {
 
-    private String finalUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCNu6L-xcmBsN3vNFOxYvB2Q";
-    private HandleXML obj;
     AppCompatButton mAuthorize;
     AppCompatButton mMakeApiCall;
     AppCompatButton mSignOut;
@@ -47,6 +48,7 @@ public class ScrollingActivity extends AppCompatActivity {
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
     public static final String LOG_TAG = "AppAuthSample";
+
     // state
     AuthState mAuthState;
 
@@ -68,10 +70,7 @@ public class ScrollingActivity extends AppCompatActivity {
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 //        .setAction("Action", null).show();
 
-                obj = new HandleXML(finalUrl);
-                obj.fetchXML();
 
-                while(obj.parsingComplete);
             }
         });
     }
@@ -280,8 +279,10 @@ public class ScrollingActivity extends AppCompatActivity {
                             //        .url("https://www.googleapis.com/oauth2/v3/userinfo")
                             //        .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
                             //        .build();
+
+                            //TODO CHANGE THE API KEY
                             Request request = new Request.Builder()
-                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=id&mine=true&key="+"")
+                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=50&mine=true&order=unread&key="+"YOUR API")
                                     .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
                                     .build();
 
@@ -299,10 +300,33 @@ public class ScrollingActivity extends AppCompatActivity {
                         @Override
                         protected void onPostExecute(JSONObject userInfo) {
                             if (userInfo != null) {
-                                String fullName = userInfo.optString("name", null);
-                                String givenName = userInfo.optString("given_name", null);
-                                String familyName = userInfo.optString("family_name", null);
-                                String imageUrl = userInfo.optString("picture", null);
+                                ArrayList<String> listSubscribesIds = new ArrayList<String>();
+                                try {
+                                    String fullName = userInfo.optString("nextPageToken", null);
+                                    JSONArray listSubscribes = (JSONArray) userInfo.getJSONArray("items");
+                                    for (int i = 0; i<listSubscribes.length(); i++) {
+                                        listSubscribesIds.add(listSubscribes.getJSONObject(i).getJSONObject("snippet").getJSONObject("resourceId").getString("channelId"));
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                Log.i(LOG_TAG, String.format("ChannelIds list of my subscriptions : %s", listSubscribesIds));
+
+                                HandleXML obj = new HandleXML("");
+                                //https://www.youtube.com/feeds/videos.xml?channel_id=UCNu6L-xcmBsN3vNFOxYvB2Q
+                                for (String channelId : listSubscribesIds) {
+                                    obj.setUrlString("https://www.youtube.com/feeds/videos.xml?channel_id="+channelId);
+                                    obj.fetchXML();
+                                    //while(obj.parsingComplete);
+                                }
+
+                                StringBuilder url = new StringBuilder();
+                                for (String s : obj.listAllVideosInMySubs) {
+                                    url.append(",");
+                                    url.append(s);
+                                }
+
+                                Log.i("APP", "La liste ultime avec toutes les videos : http://www.youtube.com/watch_videos?video_ids=" + url.toString());
                                 /*if (!TextUtils.isEmpty(imageUrl)) {
                                     Picasso.with(mMainActivity)
                                             .load(imageUrl)

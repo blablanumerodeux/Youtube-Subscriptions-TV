@@ -43,4 +43,11 @@
         app:layout_anchorGravity="bottom|end"
         app:srcCompat="@android:drawable/ic_dialog_email" />
 
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/authorize"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="text"/>
+
 </android.support.design.widget.CoordinatorLayout>

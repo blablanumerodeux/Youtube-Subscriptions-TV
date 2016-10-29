@@ -4,6 +4,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,6 +29,11 @@ import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.TokenResponse;
 
 import org.json.JSONException;
+import org.json.JSONObject;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 
 public class ScrollingActivity extends AppCompatActivity {
@@ -35,9 +41,12 @@ public class ScrollingActivity extends AppCompatActivity {
     private String finalUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCNu6L-xcmBsN3vNFOxYvB2Q";
     private HandleXML obj;
     AppCompatButton mAuthorize;
+    AppCompatButton mMakeApiCall;
+    AppCompatButton mSignOut;
     private static final String SHARED_PREFERENCES_NAME = "AuthStatePreference";
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
+    public static final String LOG_TAG = "AppAuthSample";
     // state
     AuthState mAuthState;
 
@@ -48,6 +57,8 @@ public class ScrollingActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
         mAuthorize.setOnClickListener(new AuthorizeListener());
+        mMakeApiCall = (AppCompatButton) findViewById(R.id.makeApiCall);
+        mSignOut = (AppCompatButton) findViewById(R.id.signOut);
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -173,7 +184,6 @@ public class ScrollingActivity extends AppCompatActivity {
         AuthorizationResponse response = AuthorizationResponse.fromIntent(intent);
         AuthorizationException error = AuthorizationException.fromIntent(intent);
         final AuthState authState = new AuthState(response, error);
-        final String LOG_TAG = "AppAuthSample";
 
         if (response != null) {
             Log.i(LOG_TAG, String.format("Handled Authorization Response %s ", authState.toJsonString()));
@@ -208,7 +218,18 @@ public class ScrollingActivity extends AppCompatActivity {
     private void enablePostAuthorizationFlows() {
         mAuthState = restoreAuthState();
         if (mAuthState != null && mAuthState.isAuthorized()) {
-            new MakeApiCallListener(this, mAuthState, new AuthorizationService(this));
+            if (mMakeApiCall.getVisibility() == View.GONE) {
+                mMakeApiCall.setVisibility(View.VISIBLE);
+                mMakeApiCall.setOnClickListener(new MakeApiCallListener(this, mAuthState, new AuthorizationService(this)));
+            }
+            /*if (mSignOut.getVisibility() == View.GONE) {
+                mSignOut.setVisibility(View.VISIBLE);
+                //TODO Make signOut working
+                //mSignOut.setOnClickListener(new SignOutListener(this));
+            }*/
+        } else {
+            mMakeApiCall.setVisibility(View.GONE);
+            mSignOut.setVisibility(View.GONE);
         }
     }
 
@@ -248,7 +269,67 @@ public class ScrollingActivity extends AppCompatActivity {
         public void onClick(View view) {
 
             // code from the section 'Making API Calls' goes here
+            mAuthState.performActionWithFreshTokens(mAuthorizationService, new AuthState.AuthStateAction() {
+                @Override
+                public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
+                    new AsyncTask<String, Void, JSONObject>() {
+                        @Override
+                        protected JSONObject doInBackground(String... tokens) {
+                            OkHttpClient client = new OkHttpClient();
+                            Request request = new Request.Builder()
+                                    .url("https://www.googleapis.com/oauth2/v3/userinfo")
+                                    .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
+                                    .build();
 
+                            try {
+                                Response response = client.newCall(request).execute();
+                                String jsonBody = response.body().string();
+                                Log.i(LOG_TAG, String.format("User Info Response %s", jsonBody));
+                                return new JSONObject(jsonBody);
+                            } catch (Exception exception) {
+                                Log.w(LOG_TAG, exception);
+                            }
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(JSONObject userInfo) {
+                            if (userInfo != null) {
+                                String fullName = userInfo.optString("name", null);
+                                String givenName = userInfo.optString("given_name", null);
+                                String familyName = userInfo.optString("family_name", null);
+                                String imageUrl = userInfo.optString("picture", null);
+                                /*if (!TextUtils.isEmpty(imageUrl)) {
+                                    Picasso.with(mMainActivity)
+                                            .load(imageUrl)
+                                            .placeholder(R.drawable.ic_account_circle_black_48dp)
+                                            .into(mMainActivity.mProfileView);
+                                }*/
+                                /*if (!TextUtils.isEmpty(fullName)) {
+                                    mMainActivity.mFullName.setText(fullName);
+                                }
+                                if (!TextUtils.isEmpty(givenName)) {
+                                    mMainActivity.mGivenName.setText(givenName);
+                                }
+                                if (!TextUtils.isEmpty(familyName)) {
+                                    mMainActivity.mFamilyName.setText(familyName);
+                                }*/
+
+                                String message;
+                                if (userInfo.has("error")) {
+                                    message = String.format("%s [%s]", mMainActivity.getString(R.string.request_failed), userInfo.optString("error_description", "No description"));
+                                } else {
+                                    message = mMainActivity.getString(R.string.request_complete);
+                                }
+                                //Snackbar.make(mMainActivity.mProfileView, message, Snackbar.LENGTH_SHORT)
+                                //        .show();
+                            }
+                        }
+                    }.execute(accessToken);
+                }
+            });
+
+            //https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&mine=true&key=
         }
     }
 

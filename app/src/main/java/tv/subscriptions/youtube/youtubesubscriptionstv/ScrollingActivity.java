@@ -12,13 +12,17 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationException;
@@ -47,55 +51,27 @@ public class ScrollingActivity extends AppCompatActivity {
     private static final String SHARED_PREFERENCES_NAME = "AuthStatePreference";
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
-    public static final String LOG_TAG = "AppAuthSample";
+    public static final String LOG_TAG = "Youtube Subs TV";
 
     // state
     AuthState mAuthState;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scrolling);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
         mAuthorize.setOnClickListener(new AuthorizeListener());
         mMakeApiCall = (AppCompatButton) findViewById(R.id.makeApiCall);
         mSignOut = (AppCompatButton) findViewById(R.id.signOut);
-        setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //        .setAction("Action", null).show();
-
-
-            }
-        });
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        ListView mListView = (ListView) findViewById(R.id.list);
+        // use a linear layout manager
+        mListView.setAdapter(adapter);
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_scrolling, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
 
 
 
@@ -113,8 +89,6 @@ public class ScrollingActivity extends AppCompatActivity {
                     Uri.parse("https://accounts.google.com/o/oauth2/token") /* token endpoint */
             );
 
-
-
             String clientId = "99998132999-okeq5mdnjj3uv6q4kape9emq0eeg92ge.apps.googleusercontent.com";
             Uri redirectUri = Uri.parse("tv.subscriptions.youtube.youtubesubscriptionstv:/oauth2redirect");
             AuthorizationRequest.Builder builder = new AuthorizationRequest.Builder(
@@ -126,20 +100,15 @@ public class ScrollingActivity extends AppCompatActivity {
             builder.setScope("https://www.googleapis.com/auth/youtube.readonly");
             AuthorizationRequest request = builder.build();
 
-
-
             AuthorizationService authorizationService = new AuthorizationService(view.getContext());
-
 
             String action = "tv.subscriptions.youtube.youtubesubscriptionstv.HANDLE_AUTHORIZATION_RESPONSE";
             Intent postAuthorizationIntent = new Intent(action);
             PendingIntent pendingIntent = PendingIntent.getActivity(view.getContext(), request.hashCode(), postAuthorizationIntent, 0);
             authorizationService.performAuthorizationRequest(request, pendingIntent);
 
-
         }
     }
-
 
 
     @Override
@@ -168,9 +137,6 @@ public class ScrollingActivity extends AppCompatActivity {
         super.onStart();
         checkIntent(getIntent());
     }
-
-
-
 
     /**
      * Exchanges the code, for the {@link TokenResponse}.
@@ -217,22 +183,19 @@ public class ScrollingActivity extends AppCompatActivity {
     private void enablePostAuthorizationFlows() {
         mAuthState = restoreAuthState();
         if (mAuthState != null && mAuthState.isAuthorized()) {
-            if (mMakeApiCall.getVisibility() == View.GONE) {
-                mMakeApiCall.setVisibility(View.VISIBLE);
-                mMakeApiCall.setOnClickListener(new MakeApiCallListener(this, mAuthState, new AuthorizationService(this)));
-            }
-            /*if (mSignOut.getVisibility() == View.GONE) {
-                mSignOut.setVisibility(View.VISIBLE);
-                //TODO Make signOut working
-                //mSignOut.setOnClickListener(new SignOutListener(this));
-            }*/
+            //Change the button
+            mMakeApiCall.setVisibility(View.VISIBLE);
+            mMakeApiCall.setOnClickListener(new MakeApiCallListener(this, mAuthState, new AuthorizationService(this)));
+            mSignOut.setVisibility(View.VISIBLE);
+            //TODO Make signOut working
+            //mSignOut.setOnClickListener(new SignOutListener(this));
+            mAuthorize.setVisibility(View.GONE);
         } else {
             mMakeApiCall.setVisibility(View.GONE);
             mSignOut.setVisibility(View.GONE);
+            mAuthorize.setVisibility(View.VISIBLE);
         }
     }
-
-
 
     @Nullable
     private AuthState restoreAuthState() {
@@ -247,9 +210,6 @@ public class ScrollingActivity extends AppCompatActivity {
         }
         return null;
     }
-
-
-
 
 
     public static class MakeApiCallListener implements Button.OnClickListener {
@@ -275,21 +235,17 @@ public class ScrollingActivity extends AppCompatActivity {
                         @Override
                         protected JSONObject doInBackground(String... tokens) {
                             OkHttpClient client = new OkHttpClient();
-                            //Request request = new Request.Builder()
-                            //        .url("https://www.googleapis.com/oauth2/v3/userinfo")
-                            //        .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
-                            //        .build();
 
                             //TODO CHANGE THE API KEY
                             Request request = new Request.Builder()
-                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=50&mine=true&order=unread&key="+"YOUR API")
+                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=50&mine=true&order=unread&key="+"AIzaSyDkZDXidu50Y1_TufVB0cFhncFeHG_jykE")
                                     .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
                                     .build();
 
                             try {
                                 Response response = client.newCall(request).execute();
                                 String jsonBody = response.body().string();
-                                Log.i(LOG_TAG, String.format("User Info Response %s", jsonBody));
+                                Log.i(LOG_TAG, String.format("Subscriptions %s", jsonBody));
                                 return new JSONObject(jsonBody);
                             } catch (Exception exception) {
                                 Log.w(LOG_TAG, exception);
@@ -302,7 +258,7 @@ public class ScrollingActivity extends AppCompatActivity {
                             if (userInfo != null) {
                                 ArrayList<String> listSubscribesIds = new ArrayList<String>();
                                 try {
-                                    String fullName = userInfo.optString("nextPageToken", null);
+                                    String nextPageToken = userInfo.optString("nextPageToken", null);
                                     JSONArray listSubscribes = (JSONArray) userInfo.getJSONArray("items");
                                     for (int i = 0; i<listSubscribes.length(); i++) {
                                         listSubscribesIds.add(listSubscribes.getJSONObject(i).getJSONObject("snippet").getJSONObject("resourceId").getString("channelId"));
@@ -317,31 +273,21 @@ public class ScrollingActivity extends AppCompatActivity {
                                 for (String channelId : listSubscribesIds) {
                                     obj.setUrlString("https://www.youtube.com/feeds/videos.xml?channel_id="+channelId);
                                     obj.fetchXML();
-                                    //while(obj.parsingComplete);
                                 }
 
                                 StringBuilder url = new StringBuilder();
-                                for (String s : obj.listAllVideosInMySubs) {
+                                for (String s : obj.getListVideos()) {
                                     url.append(",");
                                     url.append(s);
                                 }
 
                                 Log.i("APP", "La liste ultime avec toutes les videos : http://www.youtube.com/watch_videos?video_ids=" + url.toString());
-                                /*if (!TextUtils.isEmpty(imageUrl)) {
-                                    Picasso.with(mMainActivity)
-                                            .load(imageUrl)
-                                            .placeholder(R.drawable.ic_account_circle_black_48dp)
-                                            .into(mMainActivity.mProfileView);
-                                }*/
-                                /*if (!TextUtils.isEmpty(fullName)) {
-                                    mMainActivity.mFullName.setText(fullName);
-                                }
-                                if (!TextUtils.isEmpty(givenName)) {
-                                    mMainActivity.mGivenName.setText(givenName);
-                                }
-                                if (!TextUtils.isEmpty(familyName)) {
-                                    mMainActivity.mFamilyName.setText(familyName);
-                                }*/
+
+                                ArrayAdapter<String> adapter = new ArrayAdapter<String>(mMainActivity.getBaseContext(), android.R.layout.simple_list_item_1, obj.getListVideos());
+                                ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
+                                // use a linear layout manager
+                                mListView.setAdapter(adapter);
+                                adapter.notifyDataSetChanged();
 
                                 String message;
                                 if (userInfo.has("error")) {
@@ -349,18 +295,11 @@ public class ScrollingActivity extends AppCompatActivity {
                                 } else {
                                     message = mMainActivity.getString(R.string.request_complete);
                                 }
-                                //Snackbar.make(mMainActivity.mProfileView, message, Snackbar.LENGTH_SHORT)
-                                //        .show();
                             }
                         }
                     }.execute(accessToken);
                 }
             });
-
-            //https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&mine=true&key=
         }
     }
-
-
-
 }

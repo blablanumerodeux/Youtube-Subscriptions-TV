@@ -16,7 +16,6 @@ public class HandleXML {
     private String urlString = null;
     private XmlPullParserFactory xmlFactoryObject;
     public volatile boolean parsingComplete = true;
-    public ArrayList<String> listAllVideosInMySubs = new ArrayList<String>();
     private ArrayList<String> listVideos = new ArrayList<String>();
 
     public HandleXML(String url){
@@ -29,6 +28,10 @@ public class HandleXML {
 
     public String getUrlString() {
         return urlString;
+    }
+
+    public ArrayList<String> getListVideos() {
+        return listVideos;
     }
 
     public void parseXMLAndStoreIt(XmlPullParser myParser) {
@@ -47,15 +50,13 @@ public class HandleXML {
                     case XmlPullParser.START_TAG:
 
                         if(name.equals("entry")){
-                            //Log.i("APP", "START PARSING ENTRY");
                             inEntry = true;
                         }
 
                         else if(inEntry ==true && name.equals("link")){
                             String hrefVideo=myParser.getAttributeValue(1);
                             String idVideo = hrefVideo.split("=")[1];
-                            listVideos.add(idVideo);
-                            //Log.i("APP", hrefVideo);
+                            this.listVideos.add(idVideo);
                         }
                         break;
 
@@ -66,7 +67,6 @@ public class HandleXML {
                     case XmlPullParser.END_TAG:
 
                         if(name.equals("entry")){
-                            //Log.i("APP", "STOP PARSING ENTRY");
                             inEntry = false;
                         }
                         break;
@@ -77,7 +77,6 @@ public class HandleXML {
 
             parsingComplete = false;
 
-            this.listAllVideosInMySubs.addAll(listVideos);
         }
         catch (Exception e) {
             e.printStackTrace();

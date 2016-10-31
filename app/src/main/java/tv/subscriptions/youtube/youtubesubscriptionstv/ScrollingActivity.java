@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -22,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import net.openid.appauth.AuthState;
@@ -52,7 +54,7 @@ public class ScrollingActivity extends AppCompatActivity {
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
     public static final String LOG_TAG = "Youtube Subs TV";
-
+    private ArrayAdapter<String> adapter ;
     // state
     AuthState mAuthState;
 
@@ -66,10 +68,8 @@ public class ScrollingActivity extends AppCompatActivity {
         mAuthorize.setOnClickListener(new AuthorizeListener());
         mMakeApiCall = (AppCompatButton) findViewById(R.id.makeApiCall);
         mSignOut = (AppCompatButton) findViewById(R.id.signOut);
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-        ListView mListView = (ListView) findViewById(R.id.list);
-        // use a linear layout manager
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
+        ListView mListView = (ListView) this.findViewById(R.id.list);
         mListView.setAdapter(adapter);
     }
 
@@ -238,14 +238,14 @@ public class ScrollingActivity extends AppCompatActivity {
 
                             //TODO CHANGE THE API KEY
                             Request request = new Request.Builder()
-                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=50&mine=true&order=unread&key="+"AIzaSyDkZDXidu50Y1_TufVB0cFhncFeHG_jykE")
+                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=50&mine=true&order=unread&key="+"YOUR API")
                                     .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
                                     .build();
 
                             try {
                                 Response response = client.newCall(request).execute();
                                 String jsonBody = response.body().string();
-                                Log.i(LOG_TAG, String.format("Subscriptions %s", jsonBody));
+                                //Log.i(LOG_TAG, String.format("Subscriptions %s", jsonBody));
                                 return new JSONObject(jsonBody);
                             } catch (Exception exception) {
                                 Log.w(LOG_TAG, exception);
@@ -268,7 +268,7 @@ public class ScrollingActivity extends AppCompatActivity {
                                 }
                                 Log.i(LOG_TAG, String.format("ChannelIds list of my subscriptions : %s", listSubscribesIds));
 
-                                HandleXML obj = new HandleXML("");
+                                final HandleXML obj = new HandleXML("");
                                 //https://www.youtube.com/feeds/videos.xml?channel_id=UCNu6L-xcmBsN3vNFOxYvB2Q
                                 for (String channelId : listSubscribesIds) {
                                     obj.setUrlString("https://www.youtube.com/feeds/videos.xml?channel_id="+channelId);
@@ -281,13 +281,19 @@ public class ScrollingActivity extends AppCompatActivity {
                                     url.append(s);
                                 }
 
-                                Log.i("APP", "La liste ultime avec toutes les videos : http://www.youtube.com/watch_videos?video_ids=" + url.toString());
+                                Log.i(LOG_TAG, "La liste ultime avec toutes les videos : http://www.youtube.com/watch_videos?video_ids=" + url.toString());
 
-                                ArrayAdapter<String> adapter = new ArrayAdapter<String>(mMainActivity.getBaseContext(), android.R.layout.simple_list_item_1, obj.getListVideos());
                                 ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
-                                // use a linear layout manager
-                                mListView.setAdapter(adapter);
-                                adapter.notifyDataSetChanged();
+                                mMainActivity.adapter.addAll(obj.getListVideos());
+                                mMainActivity.adapter.notifyDataSetChanged();
+
+                                /*mMainActivity.runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
+                                        mListView.getAdapter().notifyDataSetChanged();
+                                    }
+                                });*/
+                                //Log.i(LOG_TAG, "onPostExecute "+ Looper.myLooper().getThread().getName());
 
                                 String message;
                                 if (userInfo.has("error")) {

@@ -34,6 +34,10 @@ public class HandleXML {
         return listVideos;
     }
 
+    private synchronized void addVideo(String idVideo){
+        this.listVideos.add(idVideo);
+    }
+
     public void parseXMLAndStoreIt(XmlPullParser myParser) {
 
         int event;
@@ -56,7 +60,7 @@ public class HandleXML {
                         else if(inEntry ==true && name.equals("link")){
                             String hrefVideo=myParser.getAttributeValue(1);
                             String idVideo = hrefVideo.split("=")[1];
-                            this.listVideos.add(idVideo);
+                            this.addVideo(idVideo);
                         }
                         break;
 

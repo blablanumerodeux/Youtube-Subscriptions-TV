@@ -234,22 +234,58 @@ public class ScrollingActivity extends AppCompatActivity {
             mAuthState.performActionWithFreshTokens(mAuthorizationService, new AuthState.AuthStateAction() {
                 @Override
                 public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
-                    new AsyncTask<String, Void, JSONObject>() {
+                    new AsyncTask<String, Void, List<String>>() {
                         @Override
-                        protected JSONObject doInBackground(String... tokens) {
+                        protected List<String> doInBackground(String... tokens) {
                             OkHttpClient client = new OkHttpClient();
 
                             //TODO CHANGE THE API KEY
                             Request request = new Request.Builder()
-                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=15&mine=true&order=unread&key="+"YOUR API KEY")
+                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=15&mine=true&order=unread&key="+"YOUR API KEY HERE")
                                     .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
                                     .build();
 
                             try {
                                 Response response = client.newCall(request).execute();
                                 String jsonBody = response.body().string();
+                                JSONObject userInfo = new JSONObject(jsonBody);
                                 //Log.i(LOG_TAG, String.format("Subscriptions %s", jsonBody));
-                                return new JSONObject(jsonBody);
+                                String message;
+                                if (userInfo.has("error")) {
+                                    message = String.format("%s [%s]", mMainActivity.getString(R.string.request_failed), userInfo.optString("error_description", "No description"));
+                                } else {
+                                    message = mMainActivity.getString(R.string.request_complete);
+                                }
+
+
+                                if (userInfo != null) {
+
+                                    //Get the subs channelsIDs
+                                    ArrayList<String> listSubscribesIds = new ArrayList<String>();
+                                    try {
+                                        //TODO manage multiple pages
+                                        String nextPageToken = userInfo.optString("nextPageToken", null);
+                                        JSONArray listSubscribes = (JSONArray) userInfo.getJSONArray("items");
+                                        for (int i = 0; i < listSubscribes.length(); i++) {
+                                            //TODO secure this if null or empty strings...
+                                            listSubscribesIds.add(listSubscribes.getJSONObject(i).getJSONObject("snippet").getJSONObject("resourceId").getString("channelId"));
+                                        }
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                    Log.i(LOG_TAG, String.format("ChannelIds list of my subscriptions : %s", listSubscribesIds));
+
+                                    //Parse the sub rss feed
+                                    final HandleXML handleXML = new HandleXML("");
+                                    //https://www.youtube.com/feeds/videos.xml?channel_id=UCNu6L-xcmBsN3vNFOxYvB2Q
+                                    for (String channelId : listSubscribesIds) {
+                                        handleXML.setUrlString("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId);
+                                        handleXML.fetchXML();
+                                    }
+                                    //we take only the first 15 items
+                                    return handleXML.getListVideos().subList(0,15);
+                                }
+
                             } catch (Exception exception) {
                                 Log.w(LOG_TAG, exception);
                             }
@@ -257,65 +293,42 @@ public class ScrollingActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        protected void onPostExecute(JSONObject userInfo) {
-                            if (userInfo != null) {
-                                ArrayList<String> listSubscribesIds = new ArrayList<String>();
-                                try {
-                                    String nextPageToken = userInfo.optString("nextPageToken", null);
-                                    JSONArray listSubscribes = (JSONArray) userInfo.getJSONArray("items");
-                                    for (int i = 0; i<listSubscribes.length(); i++) {
-                                        listSubscribesIds.add(listSubscribes.getJSONObject(i).getJSONObject("snippet").getJSONObject("resourceId").getString("channelId"));
-                                    }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                        protected void onPostExecute(List<String> listVideos) {
+
+                            //TODO here we have to wait for all the threads to finish (use threadpool)
+
+                            // Merge video IDs
+                            Joiner stringJoiner = Joiner.on(',');
+                            String url = stringJoiner.join(listVideos);
+                            mMainActivity.fullUrl = "http://www.youtube.com/watch_videos?video_ids=" + url;
+                            Log.i(LOG_TAG, "Ultime list of videos : " + mMainActivity.fullUrl);
+
+                            //Display the list
+                            ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
+                            //obj.getListVideos().add(0,"<a>http://www.youtube.com/watch_videos?video_ids=" + url.toString()+"</a>");
+                            TextView txtview = (TextView) mMainActivity.findViewById(R.id.txtview);
+                            txtview.setText(mMainActivity.fullUrl);
+                            mMainActivity.adapter.addAll(listVideos);
+                            mMainActivity.adapter.notifyDataSetChanged();
+
+                            //manage the intent button
+                            mMainActivity.mLaunchPlaylist.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.fullUrl));
+                            /*mMainActivity.runOnUiThread(new Runnable() {
+                                public void run() {
+                                    ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
+                                    mListView.getAdapter().notifyDataSetChanged();
                                 }
-                                Log.i(LOG_TAG, String.format("ChannelIds list of my subscriptions : %s", listSubscribesIds));
-
-                                final HandleXML obj = new HandleXML("");
-                                //https://www.youtube.com/feeds/videos.xml?channel_id=UCNu6L-xcmBsN3vNFOxYvB2Q
-                                for (String channelId : listSubscribesIds) {
-                                    obj.setUrlString("https://www.youtube.com/feeds/videos.xml?channel_id="+channelId);
-                                    obj.fetchXML();
-                                }
-
-                                //we take only the first 15 items
-                                List<String> list = obj.getListVideos().subList(0,15);
-
-                                //TODO here we have to wait for all the threads to finish (use threadpool)
-                                Joiner stringJoiner = Joiner.on(',');
-                                String url = stringJoiner.join(list);
-                                mMainActivity.fullUrl = "http://www.youtube.com/watch_videos?video_ids=" + url;
-                                Log.i(LOG_TAG, "Ultime list of videos : " + mMainActivity.fullUrl);
-
-                                ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
-                                //obj.getListVideos().add(0,"<a>http://www.youtube.com/watch_videos?video_ids=" + url.toString()+"</a>");
-                                TextView txtview = (TextView) mMainActivity.findViewById(R.id.txtview);
-                                txtview.setText(mMainActivity.fullUrl);
-                                mMainActivity.adapter.addAll(obj.getListVideos());
-                                mMainActivity.adapter.notifyDataSetChanged();
-
-                                mMainActivity.mLaunchPlaylist.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.fullUrl));
-                                /*mMainActivity.runOnUiThread(new Runnable() {
-                                    public void run() {
-                                        ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
-                                        mListView.getAdapter().notifyDataSetChanged();
-                                    }
-                                });*/
-                                //Log.i(LOG_TAG, "onPostExecute "+ Looper.myLooper().getThread().getName());
-
-                                String message;
-                                if (userInfo.has("error")) {
-                                    message = String.format("%s [%s]", mMainActivity.getString(R.string.request_failed), userInfo.optString("error_description", "No description"));
-                                } else {
-                                    message = mMainActivity.getString(R.string.request_complete);
-                                }
-                            }
+                            });*/
+                            //Log.i(LOG_TAG, "onPostExecute "+ Looper.myLooper().getThread().getName());
                         }
                     }.execute(accessToken);
                 }
             });
         }
     }
+
+
+
     public static class CallIntentListener implements Button.OnClickListener {
 
         private final ScrollingActivity mMainActivity;

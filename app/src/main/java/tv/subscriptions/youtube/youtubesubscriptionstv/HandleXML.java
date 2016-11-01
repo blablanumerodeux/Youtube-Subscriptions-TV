@@ -13,19 +13,13 @@ import java.util.ArrayList;
 
 public class HandleXML {
 
-    private String urlString = null;
     private XmlPullParserFactory xmlFactoryObject;
     public volatile boolean parsingComplete = true;
+
     private ArrayList<String> listVideos = new ArrayList<String>();
-
-    public HandleXML(String url){
-        this.urlString = url;
-    }
-
     public ArrayList<String> getListVideos() {
         return listVideos;
     }
-
     private synchronized void addVideo(String idVideo){
         this.listVideos.add(idVideo);
     }
@@ -75,8 +69,7 @@ public class HandleXML {
 
             parsingComplete = false;
 
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -107,8 +100,7 @@ public class HandleXML {
 
                     parseXMLAndStoreIt(myparser);
                     stream.close();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     Log.e("APP", e.toString());
                 }
             }

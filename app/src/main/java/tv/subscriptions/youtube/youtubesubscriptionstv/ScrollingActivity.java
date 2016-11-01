@@ -58,7 +58,7 @@ public class ScrollingActivity extends AppCompatActivity {
     public static final String LOG_TAG = "Youtube Subs TV";
     private ArrayAdapter<String> adapter ;
     private String fullUrl;
-    private String apiKey = getString(R.string.api_key);
+    private String apiKey;
     // state
     AuthState mAuthState;
 
@@ -71,6 +71,7 @@ public class ScrollingActivity extends AppCompatActivity {
         mMakeApiCall = (AppCompatButton) findViewById(R.id.makeApiCall);
         mSignOut = (AppCompatButton) findViewById(R.id.signOut);
         mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
+        apiKey = getString(R.string.api_key);
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
         ListView mListView = (ListView) this.findViewById(R.id.list);
         mListView.setAdapter(adapter);
@@ -181,8 +182,6 @@ public class ScrollingActivity extends AppCompatActivity {
         enablePostAuthorizationFlows();
     }
 
-
-
     private void enablePostAuthorizationFlows() {
         mAuthState = restoreAuthState();
         if (mAuthState != null && mAuthState.isAuthorized()) {
@@ -190,7 +189,7 @@ public class ScrollingActivity extends AppCompatActivity {
             mMakeApiCall.setVisibility(View.VISIBLE);
             mMakeApiCall.setOnClickListener(new MakeApiCallListener(this, mAuthState, new AuthorizationService(this)));
             mSignOut.setVisibility(View.VISIBLE);
-            mLaunchPlaylist.setVisibility(View.VISIBLE);
+            mLaunchPlaylist.setVisibility(View.GONE);
             //TODO Make signOut working
             //mSignOut.setOnClickListener(new SignOutListener(this));
             mAuthorize.setVisibility(View.GONE);
@@ -215,7 +214,6 @@ public class ScrollingActivity extends AppCompatActivity {
         }
         return null;
     }
-
 
     public static class MakeApiCallListener implements Button.OnClickListener {
 
@@ -242,7 +240,7 @@ public class ScrollingActivity extends AppCompatActivity {
                             OkHttpClient client = new OkHttpClient();
 
                             Request request = new Request.Builder()
-                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=15&mine=true&order=unread&key="+mMainActivity.apiKey)
+                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=50&mine=true&order=unread&key="+mMainActivity.apiKey)
                                     .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
                                     .build();
 
@@ -277,17 +275,15 @@ public class ScrollingActivity extends AppCompatActivity {
                                     Log.i(LOG_TAG, String.format("ChannelIds list of my subscriptions : %s", listSubscribesIds));
 
                                     //Parse the sub rss feed
-                                    final HandleXML handleXML = new HandleXML("");
-                                    ExecutorService threadPool = Executors.newFixedThreadPool(10);
+                                    final HandleXML handleXML = new HandleXML();
+                                    ExecutorService threadPool = Executors.newFixedThreadPool(50);
                                     for (String channelId : listSubscribesIds) {
                                         threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId));
                                     }
                                     threadPool.shutdown();
                                     threadPool.awaitTermination(5, TimeUnit.MINUTES);
 
-                                    //we take only the first 15 items
-                                    //TODO secure this if arrayindexoutofbound
-                                    return handleXML.getListVideos().subList(0,15);
+                                    return handleXML.getListVideos();
                                 }
 
                             } catch (Exception exception) {
@@ -327,8 +323,6 @@ public class ScrollingActivity extends AppCompatActivity {
             });
         }
     }
-
-
 
     public static class CallIntentListener implements Button.OnClickListener {
 

@@ -16,6 +16,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,7 +29,7 @@ import okhttp3.Response;
 
 import static tv.subscriptions.youtube.youtubesubscriptionstv.ScrollingActivity.LOG_TAG;
 
-public class HandleSubs extends AsyncTask<String, Void, List<String>> {
+class HandleSubs extends AsyncTask<String, Void, List<Video>> {
 
     private ScrollingActivity mMainActivity;
 
@@ -36,7 +38,7 @@ public class HandleSubs extends AsyncTask<String, Void, List<String>> {
     }
 
     @Override
-    protected List<String> doInBackground(String... tokens) {
+    protected List<Video> doInBackground(String... tokens) {
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
@@ -92,7 +94,20 @@ public class HandleSubs extends AsyncTask<String, Void, List<String>> {
     }
 
     @Override
-    protected void onPostExecute(List<String> listVideos) {
+    protected void onPostExecute(List<Video> listVideos) {
+
+        //We sort the list
+        Collections.sort(listVideos, new Comparator<Video>(){
+            public int compare(Video video1, Video video2) {
+                return video2.getDatePublished().compareTo(video1.getDatePublished());
+            }
+        });
+
+        //We generate the titles list
+        ArrayList<String> l = new ArrayList<String>();
+        for (Video v: listVideos ) {
+            l.add(v.getTitle());
+        }
 
         // Merge video IDs
         Joiner stringJoiner = Joiner.on(',');
@@ -104,11 +119,12 @@ public class HandleSubs extends AsyncTask<String, Void, List<String>> {
         ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
         mMainActivity.mMakeApiCall.setVisibility(View.GONE);
         mMainActivity.mLaunchPlaylist.setVisibility(View.VISIBLE);
-        mMainActivity.getAdapter().addAll(listVideos);
+        mMainActivity.getAdapter().addAll(l);
         mMainActivity.getAdapter().notifyDataSetChanged();
 
         //manage the intent button
         mMainActivity.mLaunchPlaylist.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.getFullUrl()));
+
         /*mMainActivity.runOnUiThread(new Runnable() {
             public void run() {
                 ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);

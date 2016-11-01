@@ -93,6 +93,7 @@
     <string name="make_api_call">API CALL</string>
     <string name="sign_in">SIGNIN</string>
     <string name="sign_out">SIGNOUT</string>
+    <string name="launch_playlist">LAUNCH PLAYLIST</string>
     <string name="request_complete">API Call Successful.</string>
     <string name="request_failed">API Call Failed.</string>
 </resources>

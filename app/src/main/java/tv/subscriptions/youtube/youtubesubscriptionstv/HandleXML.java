@@ -61,6 +61,8 @@ public class HandleXML {
                             String hrefVideo=myParser.getAttributeValue(1);
                             String idVideo = hrefVideo.split("=")[1];
                             this.addVideo(idVideo);
+                            //we take only the first video
+                            return;
                         }
                         break;
 
@@ -89,6 +91,7 @@ public class HandleXML {
 
     public void fetchXML(){
 
+        //TODO use threadpool here
         Thread thread = new Thread(new Runnable(){
             @Override
             public void run() {
@@ -121,5 +124,11 @@ public class HandleXML {
             }
         });
         thread.start();
+        //should be better to use threadpool instead of just waiting here
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

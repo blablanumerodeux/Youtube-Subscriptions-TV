@@ -6,25 +6,20 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import com.google.android.youtube.player.YouTubeIntents;
+import com.google.api.client.util.Joiner;
 
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationException;
@@ -39,17 +34,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static android.provider.MediaStore.Video.Thumbnails.VIDEO_ID;
 
 public class ScrollingActivity extends AppCompatActivity {
 
     AppCompatButton mAuthorize;
     AppCompatButton mMakeApiCall;
     AppCompatButton mSignOut;
+    AppCompatButton mLaunchPlaylist;
     private static final String SHARED_PREFERENCES_NAME = "AuthStatePreference";
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
@@ -57,6 +55,8 @@ public class ScrollingActivity extends AppCompatActivity {
     private ArrayAdapter<String> adapter ;
     // state
     AuthState mAuthState;
+
+    private String fullUrl;
 
 
 
@@ -68,6 +68,7 @@ public class ScrollingActivity extends AppCompatActivity {
         mAuthorize.setOnClickListener(new AuthorizeListener());
         mMakeApiCall = (AppCompatButton) findViewById(R.id.makeApiCall);
         mSignOut = (AppCompatButton) findViewById(R.id.signOut);
+        mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
         ListView mListView = (ListView) this.findViewById(R.id.list);
         mListView.setAdapter(adapter);
@@ -187,12 +188,14 @@ public class ScrollingActivity extends AppCompatActivity {
             mMakeApiCall.setVisibility(View.VISIBLE);
             mMakeApiCall.setOnClickListener(new MakeApiCallListener(this, mAuthState, new AuthorizationService(this)));
             mSignOut.setVisibility(View.VISIBLE);
+            mLaunchPlaylist.setVisibility(View.VISIBLE);
             //TODO Make signOut working
             //mSignOut.setOnClickListener(new SignOutListener(this));
             mAuthorize.setVisibility(View.GONE);
         } else {
             mMakeApiCall.setVisibility(View.GONE);
             mSignOut.setVisibility(View.GONE);
+            mLaunchPlaylist.setVisibility(View.GONE);
             mAuthorize.setVisibility(View.VISIBLE);
         }
     }
@@ -238,7 +241,7 @@ public class ScrollingActivity extends AppCompatActivity {
 
                             //TODO CHANGE THE API KEY
                             Request request = new Request.Builder()
-                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=50&mine=true&order=unread&key="+"YOUR API")
+                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=15&mine=true&order=unread&key="+"YOUR API KEY")
                                     .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
                                     .build();
 
@@ -275,18 +278,23 @@ public class ScrollingActivity extends AppCompatActivity {
                                     obj.fetchXML();
                                 }
 
-                                StringBuilder url = new StringBuilder();
-                                for (String s : obj.getListVideos()) {
-                                    url.append(",");
-                                    url.append(s);
-                                }
+                                //we take only the first 15 items
+                                List<String> list = obj.getListVideos().subList(0,15);
 
-                                Log.i(LOG_TAG, "La liste ultime avec toutes les videos : http://www.youtube.com/watch_videos?video_ids=" + url.toString());
+                                //TODO here we have to wait for all the threads to finish (use threadpool)
+                                Joiner stringJoiner = Joiner.on(',');
+                                String url = stringJoiner.join(list);
+                                mMainActivity.fullUrl = "http://www.youtube.com/watch_videos?video_ids=" + url;
+                                Log.i(LOG_TAG, "Ultime list of videos : " + mMainActivity.fullUrl);
 
                                 ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
+                                //obj.getListVideos().add(0,"<a>http://www.youtube.com/watch_videos?video_ids=" + url.toString()+"</a>");
+                                TextView txtview = (TextView) mMainActivity.findViewById(R.id.txtview);
+                                txtview.setText(mMainActivity.fullUrl);
                                 mMainActivity.adapter.addAll(obj.getListVideos());
                                 mMainActivity.adapter.notifyDataSetChanged();
 
+                                mMainActivity.mLaunchPlaylist.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.fullUrl));
                                 /*mMainActivity.runOnUiThread(new Runnable() {
                                     public void run() {
                                         ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
@@ -306,6 +314,30 @@ public class ScrollingActivity extends AppCompatActivity {
                     }.execute(accessToken);
                 }
             });
+        }
+    }
+    public static class CallIntentListener implements Button.OnClickListener {
+
+        private final ScrollingActivity mMainActivity;
+        private final String fullUrl;
+
+        public CallIntentListener(@NonNull ScrollingActivity mainActivity,@NonNull String fullUrl) {
+            this.mMainActivity = mainActivity;
+            this.fullUrl = fullUrl;
+        }
+
+        @Override
+        public void onClick(View view) {
+
+            //the youtube player api doesn't work when we try to open multiple videos
+            //Intent intent = YouTubeIntents.createPlayVideoIntent(mMainActivity, url);//"a4NT5iBFuZs");
+            //mMainActivity.startActivity(intent);
+
+            //so we use the browser to generate a anonymous playlist and playit
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(fullUrl));
+            mMainActivity.startActivity(intent);
+
         }
     }
 }

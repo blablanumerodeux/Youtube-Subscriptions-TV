@@ -22,6 +22,14 @@
                 android:text="@string/sign_in" />
 
             <android.support.v7.widget.AppCompatButton
+                android:id="@+id/launch_playlist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/launch_playlist"
+                android:visibility="gone" />
+
+
+            <android.support.v7.widget.AppCompatButton
                 android:id="@+id/makeApiCall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -35,8 +43,16 @@
                 android:text="@string/sign_out"
                 android:visibility="gone" />
 
+            <TextView
+                android:id="@+id/txtview"
+                android:autoLink="web"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="put your link here"/>
+
             <ListView
                 android:id="@+id/list"
+                android:autoLink="web"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 

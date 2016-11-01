@@ -43,13 +43,6 @@
                 android:text="@string/sign_out"
                 android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/txtview"
-                android:autoLink="web"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="put your link here"/>
-
             <ListView
                 android:id="@+id/list"
                 android:autoLink="web"

@@ -57,12 +57,10 @@ public class ScrollingActivity extends AppCompatActivity {
     private static final String USED_INTENT = "USED_INTENT";
     public static final String LOG_TAG = "Youtube Subs TV";
     private ArrayAdapter<String> adapter ;
+    private String fullUrl;
+    private String apiKey = getString(R.string.api_key);
     // state
     AuthState mAuthState;
-
-    private String fullUrl;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -243,9 +241,8 @@ public class ScrollingActivity extends AppCompatActivity {
                         protected List<String> doInBackground(String... tokens) {
                             OkHttpClient client = new OkHttpClient();
 
-                            //TODO CHANGE THE API KEY
                             Request request = new Request.Builder()
-                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=15&mine=true&order=unread&key="+"YOUR API KEY HERE ")
+                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=15&mine=true&order=unread&key="+mMainActivity.apiKey)
                                     .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
                                     .build();
 
@@ -289,6 +286,7 @@ public class ScrollingActivity extends AppCompatActivity {
                                     threadPool.awaitTermination(5, TimeUnit.MINUTES);
 
                                     //we take only the first 15 items
+                                    //TODO secure this if arrayindexoutofbound
                                     return handleXML.getListVideos().subList(0,15);
                                 }
 
@@ -301,8 +299,6 @@ public class ScrollingActivity extends AppCompatActivity {
                         @Override
                         protected void onPostExecute(List<String> listVideos) {
 
-                            //TODO here we have to wait for all the threads to finish (use threadpool)
-
                             // Merge video IDs
                             Joiner stringJoiner = Joiner.on(',');
                             String url = stringJoiner.join(listVideos);
@@ -311,9 +307,8 @@ public class ScrollingActivity extends AppCompatActivity {
 
                             //Display the list
                             ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
-                            //obj.getListVideos().add(0,"<a>http://www.youtube.com/watch_videos?video_ids=" + url.toString()+"</a>");
-                            TextView txtview = (TextView) mMainActivity.findViewById(R.id.txtview);
-                            txtview.setText(mMainActivity.fullUrl);
+                            mMainActivity.mMakeApiCall.setVisibility(View.GONE);
+                            mMainActivity.mLaunchPlaylist.setVisibility(View.VISIBLE);
                             mMainActivity.adapter.addAll(listVideos);
                             mMainActivity.adapter.notifyDataSetChanged();
 

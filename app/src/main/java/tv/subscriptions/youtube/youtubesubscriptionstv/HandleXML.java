@@ -123,7 +123,7 @@ public class HandleXML {
                 parseXMLAndStoreIt(myparser);
                 stream.close();
             } catch (Exception e) {
-                Log.e("APP", e.toString());
+                Log.e(ScrollingActivity.LOG_TAG, e.toString());
             }
             }
         });

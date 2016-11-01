@@ -1,0 +1,3 @@
+<resources>
+    <integer name="maxResultsPerPageYTAPI">50</integer>
+</resources>

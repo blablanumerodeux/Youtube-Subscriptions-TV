@@ -3,6 +3,7 @@ package tv.subscriptions.youtube.youtubesubscriptionstv;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -41,6 +42,7 @@ public class ScrollingActivity extends AppCompatActivity {
     private ArrayAdapter<String> adapter ;
     private String fullUrl;
     private String apiKey;
+    private int maxResultsPerPageYTAPI;
     // state
     AuthState mAuthState;
 
@@ -54,6 +56,9 @@ public class ScrollingActivity extends AppCompatActivity {
         mSignOut = (AppCompatButton) findViewById(R.id.signOut);
         mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
         apiKey = getString(R.string.api_key);
+
+        Resources res = getResources();
+        maxResultsPerPageYTAPI = res.getInteger(R.integer.maxResultsPerPageYTAPI);
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
         ListView mListView = (ListView) this.findViewById(R.id.list);
         mListView.setAdapter(adapter);
@@ -73,6 +78,10 @@ public class ScrollingActivity extends AppCompatActivity {
 
     public String getApiKey() {
         return apiKey;
+    }
+
+    public int getMaxResultsPerPageYTAPI() {
+        return maxResultsPerPageYTAPI;
     }
 
     /**

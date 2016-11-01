@@ -35,6 +35,10 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -241,7 +245,7 @@ public class ScrollingActivity extends AppCompatActivity {
 
                             //TODO CHANGE THE API KEY
                             Request request = new Request.Builder()
-                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=15&mine=true&order=unread&key="+"YOUR API KEY HERE")
+                                    .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults=15&mine=true&order=unread&key="+"YOUR API KEY HERE ")
                                     .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
                                     .build();
 
@@ -277,11 +281,13 @@ public class ScrollingActivity extends AppCompatActivity {
 
                                     //Parse the sub rss feed
                                     final HandleXML handleXML = new HandleXML("");
-                                    //https://www.youtube.com/feeds/videos.xml?channel_id=UCNu6L-xcmBsN3vNFOxYvB2Q
+                                    ExecutorService threadPool = Executors.newFixedThreadPool(10);
                                     for (String channelId : listSubscribesIds) {
-                                        handleXML.setUrlString("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId);
-                                        handleXML.fetchXML();
+                                        threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId));
                                     }
+                                    threadPool.shutdown();
+                                    threadPool.awaitTermination(5, TimeUnit.MINUTES);
+
                                     //we take only the first 15 items
                                     return handleXML.getListVideos().subList(0,15);
                                 }

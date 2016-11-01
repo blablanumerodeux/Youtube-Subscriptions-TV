@@ -22,14 +22,6 @@ public class HandleXML {
         this.urlString = url;
     }
 
-    public void setUrlString(String urlString) {
-        this.urlString = urlString;
-    }
-
-    public String getUrlString() {
-        return urlString;
-    }
-
     public ArrayList<String> getListVideos() {
         return listVideos;
     }
@@ -38,6 +30,9 @@ public class HandleXML {
         this.listVideos.add(idVideo);
     }
 
+    /*
+    Parsing the rss feed of a youtube channel
+     */
     public void parseXMLAndStoreIt(XmlPullParser myParser) {
 
         int event;
@@ -52,11 +47,9 @@ public class HandleXML {
 
                 switch (event){
                     case XmlPullParser.START_TAG:
-
                         if(name.equals("entry")){
                             inEntry = true;
                         }
-
                         else if(inEntry ==true && name.equals("link")){
                             String hrefVideo=myParser.getAttributeValue(1);
                             String idVideo = hrefVideo.split("=")[1];
@@ -77,7 +70,6 @@ public class HandleXML {
                         }
                         break;
                 }
-
                 event = myParser.next();
             }
 
@@ -89,9 +81,7 @@ public class HandleXML {
         }
     }
 
-    public void fetchXML(){
-
-        //TODO use threadpool here
+    public Thread fetchXML(final String urlString){
         Thread thread = new Thread(new Runnable(){
             @Override
             public void run() {
@@ -123,12 +113,6 @@ public class HandleXML {
                 }
             }
         });
-        thread.start();
-        //should be better to use threadpool instead of just waiting here
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        return thread;
     }
 }

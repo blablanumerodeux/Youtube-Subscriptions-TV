@@ -4,6 +4,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -43,6 +45,7 @@ public class ScrollingActivity extends AppCompatActivity {
     private String fullUrl;
     private String apiKey;
     private int maxResultsPerPageYTAPI;
+    private SQLiteDatabase mydatabase;
     // state
     AuthState mAuthState;
 
@@ -62,6 +65,11 @@ public class ScrollingActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
         ListView mListView = (ListView) this.findViewById(R.id.list);
         mListView.setAdapter(adapter);
+
+        this.mydatabase = openOrCreateDatabase("Youtube Subscriptions TV Database",MODE_PRIVATE,null);
+        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR);");
+        //mydatabase.execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('A6KDpHvg1wQ');");
+
     }
 
     public String getFullUrl() {
@@ -82,6 +90,10 @@ public class ScrollingActivity extends AppCompatActivity {
 
     public int getMaxResultsPerPageYTAPI() {
         return maxResultsPerPageYTAPI;
+    }
+
+    public SQLiteDatabase getMydatabase() {
+        return mydatabase;
     }
 
     /**

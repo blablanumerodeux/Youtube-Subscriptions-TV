@@ -1,6 +1,7 @@
 package tv.subscriptions.youtube.youtubesubscriptionstv;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
@@ -10,10 +11,8 @@ import android.widget.Button;
 import android.widget.ListView;
 
 import com.google.api.client.util.Joiner;
-import com.google.api.client.util.StringUtils;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -78,8 +77,8 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
                     listSubscribesIds.add(channelId);
                 }
                 Log.i(LOG_TAG, "page : 1/"+numberOfpages+"; nextPageToken : "+nextPageToken);
-                Log.i(LOG_TAG, "taille de la liste recu : "+listSubscribes.length());
-                Log.i(LOG_TAG, "taille de la liste : "+listSubscribesIds.size());
+                //Log.i(LOG_TAG, "taille de la liste recu : "+listSubscribes.length());
+                //Log.i(LOG_TAG, "taille de la liste : "+listSubscribesIds.size());
 
                 for (int i = 1; i < numberOfpages; i++) {
                     //We request the next page
@@ -103,8 +102,8 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
                         listSubscribesIds.add(channelId);
                     }
                     Log.i(LOG_TAG, "page : "+ (i+1) + "/"+numberOfpages+"; nextPageToken : "+nextPageToken);
-                    Log.i(LOG_TAG, "taille de la liste recu : "+listSubscribes.length());
-                    Log.i(LOG_TAG, "taille de la liste : "+listSubscribesIds.size());
+                    //Log.i(LOG_TAG, "taille de la liste recu : "+listSubscribes.length());
+                    //Log.i(LOG_TAG, "taille de la liste : "+listSubscribesIds.size());
                 }
 
                 //Parse the sub rss feed
@@ -135,10 +134,21 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
             }
         });
 
+        //We fetch the videos already played
+        Cursor resultSet = mMainActivity.getMydatabase().rawQuery("Select * from T_VIDEO_PLAYED",null);
+        ArrayList<String> listPlayedVideos = new ArrayList<String>();
+        for(resultSet.moveToFirst(); !resultSet.isAfterLast(); resultSet.moveToNext()) {
+            listPlayedVideos.add(resultSet.getString(0));
+        }
+
         //We generate the titles list
         ArrayList<String> l = new ArrayList<String>();
         for (Video v: listVideos ) {
-            l.add(v.getTitle());
+            //if the video has already been played we don't add it to the playlist
+            if (listPlayedVideos.contains(v.getIdYT()))
+                Log.i(LOG_TAG, "Video already played");
+            else
+                l.add(v.getTitle());
         }
 
         // Merge video IDs

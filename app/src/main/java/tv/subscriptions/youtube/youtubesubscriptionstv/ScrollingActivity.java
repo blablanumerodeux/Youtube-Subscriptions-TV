@@ -36,6 +36,16 @@ import org.json.JSONException;
 
 import java.util.ArrayList;
 
+/*
+help taken from here :
+
+https://codelabs.developers.google.com/codelabs/appauth-android-codelab/
+https://github.com/openid/AppAuth-Android
+https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf#.634ehe1z6
+http://androidessence.com/swipe-to-dismiss-recyclerview-items/
+https://developers.google.com/identity/protocols/OAuth2
+
+ */
 public class ScrollingActivity extends AppCompatActivity {
 
     AppCompatButton mAuthorize;
@@ -82,10 +92,10 @@ public class ScrollingActivity extends AppCompatActivity {
 
                 @Override
                 public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                    final int fromPos = viewHolder.getAdapterPosition();
-                    final int toPos = target.getAdapterPosition();
                     // move item in `fromPos` to `toPos` in adapter.
-                    Log.i(LOG_TAG, "MOVE !!! ");
+                    //final int fromPos = viewHolder.getAdapterPosition();
+                    //final int toPos = target.getAdapterPosition();
+                    Log.i(LOG_TAG, "moving items is normaly disabled !!! ");
                     return true;// true if moved, false otherwise
                 }
 
@@ -93,7 +103,8 @@ public class ScrollingActivity extends AppCompatActivity {
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                     String directionString = (direction==ItemTouchHelper.LEFT)?"left":"right";
                     Log.i(LOG_TAG, "removed video untitled : "+adapter.getListVideos().get(viewHolder.getAdapterPosition()));
-
+                    adapter.getListVideos().remove(viewHolder.getAdapterPosition());
+                    adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
                     //mydatabase.execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('A6KDpHvg1wQ');");
                 }
             });
@@ -190,8 +201,6 @@ public class ScrollingActivity extends AppCompatActivity {
             builder.setScope("https://www.googleapis.com/auth/youtube.readonly");
             AuthorizationRequest request = builder.build();
 
-            //AuthorizationService authorizationService = new AuthorizationService(view.getContext());
-
             String action = "tv.subscriptions.youtube.youtubesubscriptionstv.HANDLE_AUTHORIZATION_RESPONSE";
             Intent postAuthorizationIntent = new Intent(action);
             PendingIntent pendingIntent = PendingIntent.getActivity(view.getContext(), request.hashCode(), postAuthorizationIntent, 0);
@@ -235,7 +244,7 @@ public class ScrollingActivity extends AppCompatActivity {
     }
 
     /**
-     * help taken from here : https://codelabs.developers.google.com/codelabs/appauth-android-codelab/
+     *
      * Exchanges the code, for the {@link TokenResponse}.
      *
      * @param intent represents the {@link Intent} from the Custom Tabs or the System Browser.

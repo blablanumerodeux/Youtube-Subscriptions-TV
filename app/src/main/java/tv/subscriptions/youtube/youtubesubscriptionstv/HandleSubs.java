@@ -161,25 +161,10 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
             listPlayedVideos.add(resultSet.getString(0));
         }
 
-        //We generate the titles list
-        ArrayList<String> listAllTitlesOfVideos = new ArrayList<String>();
-        for (Video v: listVideos ) {
-            //if the video has already been played we don't add it to the playlist
-            if (listPlayedVideos.contains(v.getIdYT()))
-                Log.i(LOG_TAG, "Video already played");
-            else
-                listAllTitlesOfVideos.add(v.getTitle());
-        }
-
-        // Merge video IDs
-        Joiner stringJoiner = Joiner.on(',');
-        String url = stringJoiner.join(listVideos);
-        mMainActivity.setFullUrl("http://www.youtube.com/watch_videos?video_ids=" + url);
-        Log.i(LOG_TAG, "Ultime list of videos : " + mMainActivity.getFullUrl());
-
         //Display the list
         mMainActivity.mLaunchPlaylist.setVisibility(View.VISIBLE);
-        mMainActivity.getAdapter().getListVideos().addAll(listAllTitlesOfVideos);
+        mMainActivity.getAdapter().setListVideosPlayed(listPlayedVideos);
+        mMainActivity.getAdapter().getListVideos().addAll(listVideos);
         mMainActivity.getAdapter().notifyDataSetChanged();
 
         //manage the intent button
@@ -202,13 +187,23 @@ class CallIntentListener implements Button.OnClickListener {
     @Override
     public void onClick(View view) {
 
+        //We generate the titles list
+        ArrayList<String> listAllTitlesOfVideos = new ArrayList<String>();
+        for (Video v: mMainActivity.getAdapter().getListVideos())
+            listAllTitlesOfVideos.add(v.getIdYT());
+
+        // Merge video IDs
+        Joiner stringJoiner = Joiner.on(',');
+        String url = stringJoiner.join(listAllTitlesOfVideos);
+        Log.i(LOG_TAG, "Ultime list of videos : " + mMainActivity.getFullUrl());
+
         //the youtube player api doesn't work when we try to open multiple videos
         //Intent intent = YouTubeIntents.createPlayVideoIntent(mMainActivity, url);//"a4NT5iBFuZs");
         //mMainActivity.startActivity(intent);
 
         //so we use the browser to generate a anonymous playlist and playit
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(fullUrl));
+        intent.setData(Uri.parse("http://www.youtube.com/watch_videos?video_ids=" + url));
         mMainActivity.startActivity(intent);
 
     }

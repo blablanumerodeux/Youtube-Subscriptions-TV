@@ -1,7 +1,6 @@
 package tv.subscriptions.youtube.youtubesubscriptionstv;
 
 import android.net.ParseException;
-import android.nfc.Tag;
 import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -123,7 +122,7 @@ public class HandleXML {
                 parseXMLAndStoreIt(myparser);
                 stream.close();
             } catch (Exception e) {
-                Log.e(ScrollingActivity.LOG_TAG, e.toString());
+                Log.e(MainActivity.LOG_TAG, e.toString());
             }
             }
         });

@@ -3,14 +3,16 @@ package tv.subscriptions.youtube.youtubesubscriptionstv;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.res.Resources;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,9 +21,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import net.openid.appauth.AuthState;
@@ -34,7 +34,8 @@ import net.openid.appauth.TokenResponse;
 
 import org.json.JSONException;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 /*
 help taken from here :
@@ -44,20 +45,26 @@ https://github.com/openid/AppAuth-Android
 https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf#.634ehe1z6
 http://androidessence.com/swipe-to-dismiss-recyclerview-items/
 https://developers.google.com/identity/protocols/OAuth2
+https://developers.google.com/youtube/v3/guides/auth/installed-apps?hl=fr#Obtaining_Access_Tokens
+https://developers.google.com/youtube/android/player/reference/com/google/android/youtube/player/YouTubeIntents#createOpenPlaylistIntent%28android.content.Context,%20java.lang.String%29
+https://developer.android.com/training/material/lists-cards.html#RecyclerView
 
  */
-public class ScrollingActivity extends AppCompatActivity {
+public class MainActivity extends FragmentActivity {
 
     AppCompatButton mAuthorize;
     AppCompatButton mMakeApiCall;
     AppCompatButton mSignOut;
     AppCompatButton mLaunchPlaylist;
     ProgressBar mProgress;
+    ViewPager mViewPager;
+    TabLayout mTabLayout;
     private static final String SHARED_PREFERENCES_NAME = "AuthStatePreference";
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
     public static final String LOG_TAG = "Youtube Subs TV";
     private RecyclerListAdapter adapter;
+    private MyPagerAdapter mPagerAdapter;
     private String fullUrl;
     private String apiKey;
     private int maxResultsPerPageYTAPI;
@@ -69,50 +76,36 @@ public class ScrollingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_scrolling);
+        setContentView(R.layout.main_activity);
         this.authorizationService = new AuthorizationService(this);
-        mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
-        mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService));
-        mSignOut = (AppCompatButton) findViewById(R.id.signOut);
-        mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
-        mProgress = (ProgressBar) findViewById(R.id.progress_bar);
-        apiKey = getString(R.string.api_key);
+        this.mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
+        this.mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService));
+        this.mSignOut = (AppCompatButton) findViewById(R.id.signOut);
+        this.mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
+        this.mProgress = (ProgressBar) findViewById(R.id.progress_bar);
+        this.mViewPager = (ViewPager) findViewById(R.id.view_pager);
+        this.mTabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        this.mTabLayout.setupWithViewPager(mViewPager);
+
+        List<Fragment> fragments = new Vector();
+        fragments.add(Fragment.instantiate(this,VideoPageFragment.class.getName()));
+        fragments.add(Fragment.instantiate(this,VideoWatchedPageFragment.class.getName()));
+        this.mPagerAdapter = new MyPagerAdapter(super.getSupportFragmentManager(), fragments);
+        this.mViewPager.setAdapter(this.mPagerAdapter);
+
+        this.apiKey = getString(R.string.api_key);
 
         Resources res = getResources();
-        maxResultsPerPageYTAPI = res.getInteger(R.integer.maxResultsPerPageYTAPI);
+        this.maxResultsPerPageYTAPI = res.getInteger(R.integer.maxResultsPerPageYTAPI);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(ScrollingActivity.this));
-
-        adapter = new RecyclerListAdapter();
-        recyclerView.setAdapter(adapter);
-
-        ItemTouchHelper mIth = new ItemTouchHelper(
-            new ItemTouchHelper.SimpleCallback(ItemTouchHelper.ANIMATION_TYPE_SWIPE_CANCEL, ItemTouchHelper.RIGHT) {
-
-                @Override
-                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                    // move item in `fromPos` to `toPos` in adapter.
-                    //final int fromPos = viewHolder.getAdapterPosition();
-                    //final int toPos = target.getAdapterPosition();
-                    Log.i(LOG_TAG, "moving items is normaly disabled !!! ");
-                    return true;// true if moved, false otherwise
-                }
-
-                @Override
-                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                    String directionString = (direction==ItemTouchHelper.LEFT)?"left":"right";
-                    String idRemovedVideo = adapter.getListVideos().get(viewHolder.getAdapterPosition()).getIdYT();
-                    Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
-                    adapter.getListVideos().remove(viewHolder.getAdapterPosition());
-                    adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                    mydatabase.execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"');");
-                }
-            });
-        mIth.attachToRecyclerView(recyclerView);
+        //fragments.get(0).
+        //RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view_videos);
+        //recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        //this.adapter = new RecyclerListAdapter();
+        //recyclerView.setAdapter(this.adapter);
 
         this.mydatabase = openOrCreateDatabase("Youtube Subscriptions TV Database",MODE_PRIVATE,null);
-        mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR);");
+        this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR);");
     }
 
     @Override
@@ -121,7 +114,6 @@ public class ScrollingActivity extends AppCompatActivity {
         Log.i(LOG_TAG, "++ ON START ++");
         checkIntent(getIntent());
     }
-
 
     @Override
     public void onResume() {
@@ -146,6 +138,8 @@ public class ScrollingActivity extends AppCompatActivity {
         super.onDestroy();
         this.clearAuthState();
         this.authorizationService.dispose();
+        if (mydatabase.isOpen())
+            mydatabase.close();
         Log.i(LOG_TAG, "- ON DESTROY -");
     }
 
@@ -155,10 +149,6 @@ public class ScrollingActivity extends AppCompatActivity {
 
     public void setFullUrl(String fullUrl) {
         this.fullUrl = fullUrl;
-    }
-
-    public RecyclerListAdapter getAdapter() {
-        return adapter;
     }
 
     public String getApiKey() {
@@ -171,6 +161,22 @@ public class ScrollingActivity extends AppCompatActivity {
 
     public SQLiteDatabase getMydatabase() {
         return mydatabase;
+    }
+
+    public RecyclerListAdapter getAdapter() {
+        return adapter;
+    }
+
+    public void setAdapter(RecyclerListAdapter adapter) {
+        this.adapter = adapter;
+    }
+
+    public MyPagerAdapter getmPagerAdapter() {
+        return mPagerAdapter;
+    }
+
+    public void setmPagerAdapter(MyPagerAdapter mPagerAdapter) {
+        this.mPagerAdapter = mPagerAdapter;
     }
 
     /**
@@ -210,8 +216,8 @@ public class ScrollingActivity extends AppCompatActivity {
     }
 
     public static class SignOutListener implements Button.OnClickListener {
-        private final ScrollingActivity mMainActivity;
-        public SignOutListener(@NonNull ScrollingActivity mainActivity) {
+        private final MainActivity mMainActivity;
+        public SignOutListener(@NonNull MainActivity mainActivity) {
             mMainActivity = mainActivity;
         }
         @Override

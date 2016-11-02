@@ -8,7 +8,6 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ListView;
 
 import com.google.api.client.util.Joiner;
 
@@ -27,13 +26,13 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static tv.subscriptions.youtube.youtubesubscriptionstv.ScrollingActivity.LOG_TAG;
+import static tv.subscriptions.youtube.youtubesubscriptionstv.MainActivity.LOG_TAG;
 
 class HandleSubs extends AsyncTask<String, Void, List<Video>> {
 
-    private ScrollingActivity mMainActivity;
+    private MainActivity mMainActivity;
 
-    public HandleSubs(ScrollingActivity mMainActivity) {
+    public HandleSubs(MainActivity mMainActivity) {
         this.mMainActivity=mMainActivity;
     }
 
@@ -178,10 +177,10 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
 
 class CallIntentListener implements Button.OnClickListener {
 
-    private final ScrollingActivity mMainActivity;
+    private final MainActivity mMainActivity;
     private final String fullUrl;
 
-    public CallIntentListener(@NonNull ScrollingActivity mainActivity, @NonNull String fullUrl) {
+    public CallIntentListener(@NonNull MainActivity mainActivity, @NonNull String fullUrl) {
         this.mMainActivity = mainActivity;
         this.fullUrl = fullUrl;
     }

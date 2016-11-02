@@ -8,4 +8,6 @@
     <string name="request_complete">API Call Successful.</string>
     <string name="request_failed">API Call Failed.</string>
     <string name="api_key">YOUR API KEY HERE</string><!--//TODO CHANGE THE API KEY-->
+    <string name="tab_text">tab1</string>
+    <string name="tab_text2">tab2</string>
 </resources>

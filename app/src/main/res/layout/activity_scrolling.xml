@@ -43,11 +43,16 @@
                 android:text="@string/sign_out"
                 android:visibility="gone" />
 
-            <ListView
+            <!--<ListView
                 android:id="@+id/list"
                 android:autoLink="web"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content" />-->
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
         </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

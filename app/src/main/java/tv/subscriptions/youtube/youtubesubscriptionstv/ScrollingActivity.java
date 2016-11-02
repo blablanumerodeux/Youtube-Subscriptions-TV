@@ -12,6 +12,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -41,7 +44,7 @@ public class ScrollingActivity extends AppCompatActivity {
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
     public static final String LOG_TAG = "Youtube Subs TV";
-    private ArrayAdapter<String> adapter ;
+    private RecyclerListAdapter adapter;
     private String fullUrl;
     private String apiKey;
     private int maxResultsPerPageYTAPI;
@@ -62,14 +65,40 @@ public class ScrollingActivity extends AppCompatActivity {
 
         Resources res = getResources();
         maxResultsPerPageYTAPI = res.getInteger(R.integer.maxResultsPerPageYTAPI);
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
-        ListView mListView = (ListView) this.findViewById(R.id.list);
-        mListView.setAdapter(adapter);
+        //adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
+        //ListView mListView = (ListView) this.findViewById(R.id.list);
+        //mListView.setAdapter(adapter);
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(ScrollingActivity.this));
+
+        adapter = new RecyclerListAdapter();
+        recyclerView.setAdapter(adapter);
+
+        ItemTouchHelper mIth = new ItemTouchHelper(
+            new ItemTouchHelper.SimpleCallback(ItemTouchHelper.ANIMATION_TYPE_SWIPE_CANCEL, ItemTouchHelper.RIGHT) {
+
+                @Override
+                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                    final int fromPos = viewHolder.getAdapterPosition();
+                    final int toPos = target.getAdapterPosition();
+                    // move item in `fromPos` to `toPos` in adapter.
+                    Log.i(LOG_TAG, "MOVE !!! ");
+                    return true;// true if moved, false otherwise
+                }
+
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                    String directionString = (direction==ItemTouchHelper.LEFT)?"left":"right";
+                    Log.i(LOG_TAG, "removed video untitled : "+adapter.getListVideos().get(viewHolder.getAdapterPosition()));
+
+                    //mydatabase.execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('A6KDpHvg1wQ');");
+                }
+            });
+        mIth.attachToRecyclerView(recyclerView);
 
         this.mydatabase = openOrCreateDatabase("Youtube Subscriptions TV Database",MODE_PRIVATE,null);
         mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR);");
-        //mydatabase.execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('A6KDpHvg1wQ');");
-
     }
 
     public String getFullUrl() {
@@ -80,7 +109,7 @@ public class ScrollingActivity extends AppCompatActivity {
         this.fullUrl = fullUrl;
     }
 
-    public ArrayAdapter<String> getAdapter() {
+    public RecyclerListAdapter getAdapter() {
         return adapter;
     }
 

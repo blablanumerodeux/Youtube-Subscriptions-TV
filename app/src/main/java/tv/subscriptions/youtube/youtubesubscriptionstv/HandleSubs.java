@@ -142,13 +142,13 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         }
 
         //We generate the titles list
-        ArrayList<String> l = new ArrayList<String>();
+        ArrayList<String> listAllTitlesOfVideos = new ArrayList<String>();
         for (Video v: listVideos ) {
             //if the video has already been played we don't add it to the playlist
             if (listPlayedVideos.contains(v.getIdYT()))
                 Log.i(LOG_TAG, "Video already played");
             else
-                l.add(v.getTitle());
+                listAllTitlesOfVideos.add(v.getTitle());
         }
 
         // Merge video IDs
@@ -158,10 +158,9 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         Log.i(LOG_TAG, "Ultime list of videos : " + mMainActivity.getFullUrl());
 
         //Display the list
-        ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
         mMainActivity.mMakeApiCall.setVisibility(View.GONE);
         mMainActivity.mLaunchPlaylist.setVisibility(View.VISIBLE);
-        mMainActivity.getAdapter().addAll(l);
+        mMainActivity.getAdapter().getListVideos().addAll(listAllTitlesOfVideos);
         mMainActivity.getAdapter().notifyDataSetChanged();
 
         //manage the intent button

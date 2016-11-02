@@ -102,10 +102,11 @@ public class ScrollingActivity extends AppCompatActivity {
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                     String directionString = (direction==ItemTouchHelper.LEFT)?"left":"right";
-                    Log.i(LOG_TAG, "removed video untitled : "+adapter.getListVideos().get(viewHolder.getAdapterPosition()));
+                    String idRemovedVideo = adapter.getListVideos().get(viewHolder.getAdapterPosition()).getIdYT();
+                    Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
                     adapter.getListVideos().remove(viewHolder.getAdapterPosition());
                     adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                    //mydatabase.execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('A6KDpHvg1wQ');");
+                    mydatabase.execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"');");
                 }
             });
         mIth.attachToRecyclerView(recyclerView);
@@ -220,7 +221,6 @@ public class ScrollingActivity extends AppCompatActivity {
             mMainActivity.enablePostAuthorizationFlows();
         }
     }
-
 
     @Override
     protected void onNewIntent(Intent intent) {

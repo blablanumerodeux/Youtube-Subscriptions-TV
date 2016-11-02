@@ -154,16 +154,18 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
             }
         });
 
-        //We fetch the videos already played
+        //We fetch and remove the videos already played
         Cursor resultSet = mMainActivity.getMydatabase().rawQuery("Select * from T_VIDEO_PLAYED",null);
-        ArrayList<String> listPlayedVideos = new ArrayList<String>();
+        ArrayList<Video> listPlayedVideos = new ArrayList<Video>();
         for(resultSet.moveToFirst(); !resultSet.isAfterLast(); resultSet.moveToNext()) {
-            listPlayedVideos.add(resultSet.getString(0));
+            Video v = new Video();
+            v.setIdYT(resultSet.getString(0));
+            listPlayedVideos.add(v);
         }
+        listVideos.removeAll(listPlayedVideos);
 
         //Display the list
         mMainActivity.mLaunchPlaylist.setVisibility(View.VISIBLE);
-        mMainActivity.getAdapter().setListVideosPlayed(listPlayedVideos);
         mMainActivity.getAdapter().getListVideos().addAll(listVideos);
         mMainActivity.getAdapter().notifyDataSetChanged();
 

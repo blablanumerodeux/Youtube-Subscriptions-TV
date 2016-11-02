@@ -46,7 +46,7 @@ public class VideoPageFragment extends Fragment {
                         Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
                         adapter.getListVideos().remove(viewHolder.getAdapterPosition());
                         adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                        //mydatabase.execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"');");
+                        ((MainActivity)getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', 'Title', 'ThumbnailsUrl', 'ChannelTitle');");
                     }
                 });
         mIth.attachToRecyclerView(recyclerView);

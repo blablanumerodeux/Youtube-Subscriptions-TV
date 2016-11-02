@@ -13,11 +13,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -48,6 +44,9 @@ https://developers.google.com/identity/protocols/OAuth2
 https://developers.google.com/youtube/v3/guides/auth/installed-apps?hl=fr#Obtaining_Access_Tokens
 https://developers.google.com/youtube/android/player/reference/com/google/android/youtube/player/YouTubeIntents#createOpenPlaylistIntent%28android.content.Context,%20java.lang.String%29
 https://developer.android.com/training/material/lists-cards.html#RecyclerView
+http://www.tutos-android.com/fragment-slider-page-lautre
+https://developer.android.com/training/basics/data-storage/shared-preferences.html
+https://material.google.com/components/lists.html
 
  */
 public class MainActivity extends FragmentActivity {
@@ -59,7 +58,7 @@ public class MainActivity extends FragmentActivity {
     ProgressBar mProgress;
     ViewPager mViewPager;
     TabLayout mTabLayout;
-    private static final String SHARED_PREFERENCES_NAME = "AuthStatePreference";
+    private static final String SHARED_PREFERENCES_NAME = "Youtube Subs TV";
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
     public static final String LOG_TAG = "Youtube Subs TV";
@@ -79,7 +78,7 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.main_activity);
         this.authorizationService = new AuthorizationService(this);
         this.mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
-        this.mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService));
+        this.mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService, this));
         this.mSignOut = (AppCompatButton) findViewById(R.id.signOut);
         this.mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
         this.mProgress = (ProgressBar) findViewById(R.id.progress_bar);
@@ -92,20 +91,21 @@ public class MainActivity extends FragmentActivity {
         fragments.add(Fragment.instantiate(this,VideoWatchedPageFragment.class.getName()));
         this.mPagerAdapter = new MyPagerAdapter(super.getSupportFragmentManager(), fragments);
         this.mViewPager.setAdapter(this.mPagerAdapter);
+        this.mTabLayout.getTabAt(0).setText(R.string.tab_videos);
+        this.mTabLayout.getTabAt(1).setText(R.string.tab_videos_watched);
+        this.mTabLayout.getTabAt(1).select();
 
         this.apiKey = getString(R.string.api_key);
 
         Resources res = getResources();
         this.maxResultsPerPageYTAPI = res.getInteger(R.integer.maxResultsPerPageYTAPI);
 
-        //fragments.get(0).
-        //RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view_videos);
-        //recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        //this.adapter = new RecyclerListAdapter();
-        //recyclerView.setAdapter(this.adapter);
+        //we restore the token that has been saved on the SharedPreferences
+        this.enablePostAuthorizationFlows();
 
         this.mydatabase = openOrCreateDatabase("Youtube Subscriptions TV Database",MODE_PRIVATE,null);
-        this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR);");
+        //this.mydatabase.execSQL("DROP TABLE T_VIDEO_PLAYED");
+        this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
     }
 
     @Override
@@ -185,9 +185,11 @@ public class MainActivity extends FragmentActivity {
     public static class AuthorizeListener implements Button.OnClickListener {
 
         private AuthorizationService authorizationService;
+        private final MainActivity mMainActivity;
 
-        public AuthorizeListener(AuthorizationService authorizationService) {
+        public AuthorizeListener(AuthorizationService authorizationService, MainActivity mMainActivity) {
             this.authorizationService = authorizationService;
+            this.mMainActivity = mMainActivity;
         }
 
         @Override
@@ -197,7 +199,7 @@ public class MainActivity extends FragmentActivity {
                     Uri.parse("https://accounts.google.com/o/oauth2/token") /* token endpoint */
             );
 
-            String clientId = "99998132999-okeq5mdnjj3uv6q4kape9emq0eeg92ge.apps.googleusercontent.com";
+            String clientId = mMainActivity.getString(R.string.clientId);
             Uri redirectUri = Uri.parse("tv.subscriptions.youtube.youtubesubscriptionstv:/oauth2redirect");
             AuthorizationRequest.Builder builder = new AuthorizationRequest.Builder(
                     serviceConfiguration,

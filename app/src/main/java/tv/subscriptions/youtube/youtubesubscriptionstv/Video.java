@@ -2,15 +2,13 @@ package tv.subscriptions.youtube.youtubesubscriptionstv;
 
 import java.util.Date;
 
-/**
- * Created by dreaser on 01/11/16.
- */
-
 public class Video {
 
     private Date datePublished;
     private String title;
     private String idYT;
+    private String thumbnailsUrl;
+    private String channelTitle;
 
     public Date getDatePublished() {
         return datePublished;
@@ -34,6 +32,22 @@ public class Video {
 
     public void setIdYT(String idYT) {
         this.idYT = idYT;
+    }
+
+    public String getThumbnailsUrl() {
+        return thumbnailsUrl;
+    }
+
+    public void setThumbnailsUrl(String thumbnailsUrl) {
+        this.thumbnailsUrl = thumbnailsUrl;
+    }
+
+    public String getChannelTitle() {
+        return channelTitle;
+    }
+
+    public void setChannelTitle(String channelTitle) {
+        this.channelTitle = channelTitle;
     }
 
     @Override

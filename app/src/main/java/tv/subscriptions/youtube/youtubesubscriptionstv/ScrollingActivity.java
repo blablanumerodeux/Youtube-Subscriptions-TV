@@ -3,6 +3,7 @@ package tv.subscriptions.youtube.youtubesubscriptionstv;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -21,6 +22,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationException;
@@ -40,6 +42,7 @@ public class ScrollingActivity extends AppCompatActivity {
     AppCompatButton mMakeApiCall;
     AppCompatButton mSignOut;
     AppCompatButton mLaunchPlaylist;
+    ProgressBar mProgress;
     private static final String SHARED_PREFERENCES_NAME = "AuthStatePreference";
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
@@ -49,6 +52,7 @@ public class ScrollingActivity extends AppCompatActivity {
     private String apiKey;
     private int maxResultsPerPageYTAPI;
     private SQLiteDatabase mydatabase;
+    private AuthorizationService authorizationService;
     // state
     AuthState mAuthState;
 
@@ -56,17 +60,16 @@ public class ScrollingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scrolling);
+        this.authorizationService = new AuthorizationService(this);
         mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
-        mAuthorize.setOnClickListener(new AuthorizeListener());
+        mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService));
         mSignOut = (AppCompatButton) findViewById(R.id.signOut);
         mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
+        mProgress = (ProgressBar) findViewById(R.id.progress_bar);
         apiKey = getString(R.string.api_key);
 
         Resources res = getResources();
         maxResultsPerPageYTAPI = res.getInteger(R.integer.maxResultsPerPageYTAPI);
-        //adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
-        //ListView mListView = (ListView) this.findViewById(R.id.list);
-        //mListView.setAdapter(adapter);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(ScrollingActivity.this));
@@ -100,6 +103,40 @@ public class ScrollingActivity extends AppCompatActivity {
         mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR);");
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i(LOG_TAG, "++ ON START ++");
+        checkIntent(getIntent());
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.i(LOG_TAG, "+ ON RESUME +");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.i(LOG_TAG, "- ON PAUSE -");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.i(LOG_TAG, "-- ON STOP --");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        this.clearAuthState();
+        this.authorizationService.dispose();
+        Log.i(LOG_TAG, "- ON DESTROY -");
+    }
+
     public String getFullUrl() {
         return fullUrl;
     }
@@ -128,11 +165,15 @@ public class ScrollingActivity extends AppCompatActivity {
      * Kicks off the authorization flow.
      */
     public static class AuthorizeListener implements Button.OnClickListener {
+
+        private AuthorizationService authorizationService;
+
+        public AuthorizeListener(AuthorizationService authorizationService) {
+            this.authorizationService = authorizationService;
+        }
+
         @Override
         public void onClick(View view) {
-
-            // code from the step 'Create the Authorization Request',
-            // and the step 'Perform the Authorization Request' goes here.
             AuthorizationServiceConfiguration serviceConfiguration = new AuthorizationServiceConfiguration(
                     Uri.parse("https://accounts.google.com/o/oauth2/auth") /* auth endpoint */,
                     Uri.parse("https://accounts.google.com/o/oauth2/token") /* token endpoint */
@@ -149,15 +190,28 @@ public class ScrollingActivity extends AppCompatActivity {
             builder.setScope("https://www.googleapis.com/auth/youtube.readonly");
             AuthorizationRequest request = builder.build();
 
-            AuthorizationService authorizationService = new AuthorizationService(view.getContext());
+            //AuthorizationService authorizationService = new AuthorizationService(view.getContext());
 
             String action = "tv.subscriptions.youtube.youtubesubscriptionstv.HANDLE_AUTHORIZATION_RESPONSE";
             Intent postAuthorizationIntent = new Intent(action);
             PendingIntent pendingIntent = PendingIntent.getActivity(view.getContext(), request.hashCode(), postAuthorizationIntent, 0);
-            authorizationService.performAuthorizationRequest(request, pendingIntent);
-
+            this.authorizationService.performAuthorizationRequest(request, pendingIntent);
         }
     }
+
+    public static class SignOutListener implements Button.OnClickListener {
+        private final ScrollingActivity mMainActivity;
+        public SignOutListener(@NonNull ScrollingActivity mainActivity) {
+            mMainActivity = mainActivity;
+        }
+        @Override
+        public void onClick(View view) {
+            mMainActivity.mAuthState = null;
+            mMainActivity.clearAuthState();
+            mMainActivity.enablePostAuthorizationFlows();
+        }
+    }
+
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -180,27 +234,21 @@ public class ScrollingActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        checkIntent(getIntent());
-    }
-
     /**
+     * help taken from here : https://codelabs.developers.google.com/codelabs/appauth-android-codelab/
      * Exchanges the code, for the {@link TokenResponse}.
      *
      * @param intent represents the {@link Intent} from the Custom Tabs or the System Browser.
      */
     private void handleAuthorizationResponse(@NonNull Intent intent) {
 
-        // code from the step 'Handle the Authorization Response' goes here.
         AuthorizationResponse response = AuthorizationResponse.fromIntent(intent);
         AuthorizationException error = AuthorizationException.fromIntent(intent);
         final AuthState authState = new AuthState(response, error);
 
         if (response != null) {
             Log.i(LOG_TAG, String.format("Handled Authorization Response %s ", authState.toJsonString()));
-            AuthorizationService service = new AuthorizationService(this);
+            AuthorizationService service = this.authorizationService;
             service.performTokenRequest(response.createTokenExchangeRequest(), new AuthorizationService.TokenResponseCallback() {
                 @Override
                 public void onTokenRequestCompleted(@Nullable TokenResponse tokenResponse, @Nullable AuthorizationException exception) {
@@ -216,40 +264,13 @@ public class ScrollingActivity extends AppCompatActivity {
                 }
             });
         }
-
     }
 
     private void persistAuthState(@NonNull AuthState authState) {
         getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE).edit()
                 .putString(AUTH_STATE, authState.toJsonString())
-                .commit();
+                .apply();
         enablePostAuthorizationFlows();
-    }
-
-    private void enablePostAuthorizationFlows() {
-        mAuthState = restoreAuthState();
-        if (mAuthState != null && mAuthState.isAuthorized()) {
-
-            //we load the videos
-            final HandleSubs handleSubs = new HandleSubs(this);
-            mAuthState.performActionWithFreshTokens(new AuthorizationService(this), new AuthState.AuthStateAction() {
-                @Override
-                public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
-                    handleSubs.execute(accessToken);
-                }
-            });
-
-            //Change the button
-            mSignOut.setVisibility(View.VISIBLE);
-            mLaunchPlaylist.setVisibility(View.GONE);
-            //TODO Make signOut working
-            //mSignOut.setOnClickListener(new SignOutListener(this));
-            mAuthorize.setVisibility(View.GONE);
-        } else {
-            mSignOut.setVisibility(View.GONE);
-            mLaunchPlaylist.setVisibility(View.GONE);
-            mAuthorize.setVisibility(View.VISIBLE);
-        }
     }
 
     @Nullable
@@ -266,5 +287,36 @@ public class ScrollingActivity extends AppCompatActivity {
         return null;
     }
 
+    private void clearAuthState() {
+        getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .remove(AUTH_STATE)
+                .apply();
+    }
+
+    private void enablePostAuthorizationFlows() {
+        mAuthState = restoreAuthState();
+        if (mAuthState != null && mAuthState.isAuthorized()) {
+
+            //we load the videos
+            final HandleSubs handleSubs = new HandleSubs(this);
+            mAuthState.performActionWithFreshTokens(this.authorizationService, new AuthState.AuthStateAction() {
+                @Override
+                public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
+                    handleSubs.execute(accessToken);
+                }
+            });
+
+            //Change the button
+            mSignOut.setVisibility(View.VISIBLE);
+            mLaunchPlaylist.setVisibility(View.GONE);
+            mSignOut.setOnClickListener(new SignOutListener(this));
+            mAuthorize.setVisibility(View.GONE);
+        } else {
+            mSignOut.setVisibility(View.GONE);
+            mLaunchPlaylist.setVisibility(View.GONE);
+            mAuthorize.setVisibility(View.VISIBLE);
+        }
+    }
 
 }

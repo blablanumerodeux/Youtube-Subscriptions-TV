@@ -41,6 +41,12 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
     protected List<Video> doInBackground(String... tokens) {
         OkHttpClient client = new OkHttpClient();
 
+        mMainActivity.runOnUiThread(new Runnable() {
+            public void run() {
+                mMainActivity.mProgress.setVisibility(View.VISIBLE);
+            }
+        });
+
         Request request = new Request.Builder()
                 .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults="+mMainActivity.getMaxResultsPerPageYTAPI()+"&mine=true&order=alphabetical&fields=etag%2Citems(id%2Csnippet(channelId%2CresourceId%2FchannelId))%2CnextPageToken%2CpageInfo&key="+mMainActivity.getApiKey())
                 .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
@@ -62,7 +68,7 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
 
                 //Get the subs channelsIDs
                 ArrayList<String> listSubscribesIds = new ArrayList<String>();
-                Double numberOfpages = Math.ceil(userInfo.optJSONObject("pageInfo").optDouble("totalResults")/mMainActivity.getMaxResultsPerPageYTAPI());
+                final Double numberOfpages = Math.ceil(userInfo.optJSONObject("pageInfo").optDouble("totalResults")/mMainActivity.getMaxResultsPerPageYTAPI());
                 String nextPageToken = userInfo.optString("nextPageToken", null);
                 Log.i(LOG_TAG, "Number of subs : "+userInfo.optJSONObject("pageInfo").optDouble("totalResults"));
 
@@ -101,10 +107,24 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
                         }
                         listSubscribesIds.add(channelId);
                     }
+
+                    final int progressStatus = (int) ((100*(i+1))/numberOfpages);
+                    mMainActivity.runOnUiThread(new Runnable() {
+                        public void run() {
+                            mMainActivity.mProgress.setProgress(progressStatus);
+                        }
+                    });
+
                     Log.i(LOG_TAG, "page : "+ (i+1) + "/"+numberOfpages+"; nextPageToken : "+nextPageToken);
                     //Log.i(LOG_TAG, "taille de la liste recu : "+listSubscribes.length());
                     //Log.i(LOG_TAG, "taille de la liste : "+listSubscribesIds.size());
                 }
+
+                mMainActivity.runOnUiThread(new Runnable() {
+                    public void run() {
+                        mMainActivity.mProgress.setVisibility(View.GONE);
+                    }
+                });
 
                 //Parse the sub rss feed
                 final HandleXML handleXML = new HandleXML();
@@ -165,12 +185,6 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         //manage the intent button
         mMainActivity.mLaunchPlaylist.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.getFullUrl()));
 
-        /*mMainActivity.runOnUiThread(new Runnable() {
-            public void run() {
-                ListView mListView = (ListView) mMainActivity.findViewById(R.id.list);
-                mListView.getAdapter().notifyDataSetChanged();
-            }
-        });*/
         //Log.i(LOG_TAG, "onPostExecute "+ Looper.myLooper().getThread().getName());
     }
 }

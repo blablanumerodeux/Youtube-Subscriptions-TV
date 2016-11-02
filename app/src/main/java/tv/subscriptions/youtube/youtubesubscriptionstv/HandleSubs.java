@@ -158,7 +158,6 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         Log.i(LOG_TAG, "Ultime list of videos : " + mMainActivity.getFullUrl());
 
         //Display the list
-        mMainActivity.mMakeApiCall.setVisibility(View.GONE);
         mMainActivity.mLaunchPlaylist.setVisibility(View.VISIBLE);
         mMainActivity.getAdapter().getListVideos().addAll(listAllTitlesOfVideos);
         mMainActivity.getAdapter().notifyDataSetChanged();

@@ -58,7 +58,6 @@ public class ScrollingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scrolling);
         mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
         mAuthorize.setOnClickListener(new AuthorizeListener());
-        mMakeApiCall = (AppCompatButton) findViewById(R.id.makeApiCall);
         mSignOut = (AppCompatButton) findViewById(R.id.signOut);
         mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
         apiKey = getString(R.string.api_key);
@@ -230,16 +229,23 @@ public class ScrollingActivity extends AppCompatActivity {
     private void enablePostAuthorizationFlows() {
         mAuthState = restoreAuthState();
         if (mAuthState != null && mAuthState.isAuthorized()) {
+
+            //we load the videos
+            final HandleSubs handleSubs = new HandleSubs(this);
+            mAuthState.performActionWithFreshTokens(new AuthorizationService(this), new AuthState.AuthStateAction() {
+                @Override
+                public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
+                    handleSubs.execute(accessToken);
+                }
+            });
+
             //Change the button
-            mMakeApiCall.setVisibility(View.VISIBLE);
-            mMakeApiCall.setOnClickListener(new MakeApiCallListener(this, mAuthState, new AuthorizationService(this)));
             mSignOut.setVisibility(View.VISIBLE);
             mLaunchPlaylist.setVisibility(View.GONE);
             //TODO Make signOut working
             //mSignOut.setOnClickListener(new SignOutListener(this));
             mAuthorize.setVisibility(View.GONE);
         } else {
-            mMakeApiCall.setVisibility(View.GONE);
             mSignOut.setVisibility(View.GONE);
             mLaunchPlaylist.setVisibility(View.GONE);
             mAuthorize.setVisibility(View.VISIBLE);
@@ -260,27 +266,5 @@ public class ScrollingActivity extends AppCompatActivity {
         return null;
     }
 
-    public static class MakeApiCallListener implements Button.OnClickListener {
-
-        private final ScrollingActivity mMainActivity;
-        private AuthState mAuthState;
-        private AuthorizationService mAuthorizationService;
-
-        public MakeApiCallListener(@NonNull ScrollingActivity mainActivity, @NonNull AuthState authState, @NonNull AuthorizationService authorizationService) {
-            mMainActivity = mainActivity;
-            mAuthState = authState;
-            mAuthorizationService = authorizationService;
-        }
-
-        @Override
-        public void onClick(View view) {
-            mAuthState.performActionWithFreshTokens(mAuthorizationService, new AuthState.AuthStateAction() {
-                @Override
-                public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
-                    new HandleSubs(mMainActivity).execute(accessToken);
-                }
-            });
-        }
-    }
 
 }

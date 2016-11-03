@@ -9,13 +9,19 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -47,9 +53,10 @@ https://developer.android.com/training/material/lists-cards.html#RecyclerView
 http://www.tutos-android.com/fragment-slider-page-lautre
 https://developer.android.com/training/basics/data-storage/shared-preferences.html
 https://material.google.com/components/lists.html
+http://stackoverflow.com/questions/5273436/how-to-get-activitys-content-view
 
  */
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends AppCompatActivity {
 
     AppCompatButton mAuthorize;
     AppCompatButton mMakeApiCall;
@@ -58,6 +65,8 @@ public class MainActivity extends FragmentActivity {
     ProgressBar mProgress;
     ViewPager mViewPager;
     TabLayout mTabLayout;
+    Menu mMenu;
+    FloatingActionButton fab;
     private static final String SHARED_PREFERENCES_NAME = "Youtube Subs TV";
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
@@ -76,11 +85,13 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         this.authorizationService = new AuthorizationService(this);
         this.mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
-        this.mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService, this));
+        //this.mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService, this));
         this.mSignOut = (AppCompatButton) findViewById(R.id.signOut);
-        this.mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
+        //this.mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
         this.mProgress = (ProgressBar) findViewById(R.id.progress_bar);
         this.mViewPager = (ViewPager) findViewById(R.id.view_pager);
         this.mTabLayout = (TabLayout) findViewById(R.id.tab_layout);
@@ -93,19 +104,56 @@ public class MainActivity extends FragmentActivity {
         this.mViewPager.setAdapter(this.mPagerAdapter);
         this.mTabLayout.getTabAt(0).setText(R.string.tab_videos);
         this.mTabLayout.getTabAt(1).setText(R.string.tab_videos_watched);
-        this.mTabLayout.getTabAt(1).select();
+        //this.mTabLayout.getTabAt(1).select();
 
         this.apiKey = getString(R.string.api_key);
 
         Resources res = getResources();
         this.maxResultsPerPageYTAPI = res.getInteger(R.integer.maxResultsPerPageYTAPI);
 
-        //we restore the token that has been saved on the SharedPreferences
-        this.enablePostAuthorizationFlows();
-
         this.mydatabase = openOrCreateDatabase("Youtube Subscriptions TV Database",MODE_PRIVATE,null);
         //this.mydatabase.execSQL("DROP TABLE T_VIDEO_PLAYED");
         this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
+
+        this.fab = (FloatingActionButton) findViewById(R.id.launch_playlist);
+        this.fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "You need to Signin to launch the playlist", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_scrolling, menu);
+        this.mMenu = menu;
+
+        //we restore the token that has been saved on the SharedPreferences
+        this.enablePostAuthorizationFlows();
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.authorize:
+                AuthorizeListener authListener = new AuthorizeListener(authorizationService, this);
+                authListener.onClick(this.findViewById(android.R.id.content).getRootView());
+                return true;
+            case R.id.signOut:
+                SignOutListener signOutListener = new SignOutListener(this);
+                signOutListener.onClick(findViewById(R.id.signOut));
+                return true;
+            case R.id.action_settings:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -325,14 +373,22 @@ public class MainActivity extends FragmentActivity {
             });
 
             //Change the button
-            mSignOut.setVisibility(View.VISIBLE);
-            mLaunchPlaylist.setVisibility(View.GONE);
-            mSignOut.setOnClickListener(new SignOutListener(this));
-            mAuthorize.setVisibility(View.GONE);
+            //mSignOut.setVisibility(View.VISIBLE);
+            if (this.mMenu != null) {
+                ((MenuItem) this.mMenu.findItem(R.id.signOut)).setVisible(true);
+                //mLaunchPlaylist.setVisibility(View.GONE);
+                //mSignOut.setOnClickListener(new SignOutListener(this));
+                //mAuthorize.setVisibility(View.GONE);
+                ((MenuItem) this.mMenu.findItem(R.id.authorize)).setVisible(false);
+            }
         } else {
-            mSignOut.setVisibility(View.GONE);
-            mLaunchPlaylist.setVisibility(View.GONE);
-            mAuthorize.setVisibility(View.VISIBLE);
+            if (this.mMenu != null) {
+                //mSignOut.setVisibility(View.GONE);
+                ((MenuItem) this.mMenu.findItem(R.id.signOut)).setVisible(false);
+                //mLaunchPlaylist.setVisibility(View.GONE);
+                //mAuthorize.setVisibility(View.VISIBLE);
+                ((MenuItem) this.mMenu.findItem(R.id.authorize)).setVisible(true);
+            }
         }
     }
 

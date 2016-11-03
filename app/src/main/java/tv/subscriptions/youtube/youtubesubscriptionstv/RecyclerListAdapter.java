@@ -25,7 +25,7 @@ public class RecyclerListAdapter extends RecyclerView.Adapter<ItemViewHolder> {
     @Override
     public void onBindViewHolder(ItemViewHolder holder, int position) {
         Video video = this.listVideos.get(position);
-        holder.textView.setText(video.getIdYT()+"|"+video.getTitle()+"|"+video.getThumbnailsUrl()+"|"+video.getChannelTitle());
+        holder.textView.setText(video.getTitle()/*+"|"+video.getThumbnailsUrl()+"|"+video.getChannelTitle()*/);
         //holder.textView.setBackgroundColor(Color.CYAN);
     }
     @Override

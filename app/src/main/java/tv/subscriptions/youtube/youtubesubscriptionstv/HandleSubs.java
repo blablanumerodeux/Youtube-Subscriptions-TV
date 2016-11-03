@@ -154,6 +154,8 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         });
 
         //We fetch and remove the videos already played
+        if (!mMainActivity.getMydatabase().isOpen())
+            return;
         Cursor resultSet = mMainActivity.getMydatabase().rawQuery("Select * from T_VIDEO_PLAYED",null);
         ArrayList<Video> listPlayedVideos = new ArrayList<Video>();
         for(resultSet.moveToFirst(); !resultSet.isAfterLast(); resultSet.moveToNext()) {
@@ -164,12 +166,13 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         listVideos.removeAll(listPlayedVideos);
 
         //Display the list
-        mMainActivity.mLaunchPlaylist.setVisibility(View.VISIBLE);
+        mMainActivity.fab.setVisibility(View.VISIBLE);
         mMainActivity.getAdapter().getListVideos().addAll(listVideos);
         mMainActivity.getAdapter().notifyDataSetChanged();
 
         //manage the intent button
-        mMainActivity.mLaunchPlaylist.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.getFullUrl()));
+        //mMainActivity.mLaunchPlaylist.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.getFullUrl()));
+        mMainActivity.fab.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.getFullUrl()));
 
         //Log.i(LOG_TAG, "onPostExecute "+ Looper.myLooper().getThread().getName());
     }

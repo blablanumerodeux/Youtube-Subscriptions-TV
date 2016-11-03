@@ -35,7 +35,9 @@ public class HandleXML {
 
         int event;
         String text=null;
+        String attributZero=null;
         boolean inEntry = false;
+        boolean inMediaGroup = false;
 
         try {
             event = myParser.getEventType();
@@ -48,11 +50,9 @@ public class HandleXML {
                             inEntry = true;
                             v = new Video();
                         }
-                        /*else if(inEntry ==true && name.equals("link")){
-                            String hrefVideo=myParser.getAttributeValue(1);
-                            String idVideo = hrefVideo.split("=")[1];
-                            //this.addVideo(idVideo);
-                        }*/
+                        else if(name.equals("media:thumbnail")){
+                            attributZero = myParser.getAttributeValue(0);
+                        }
                         break;
 
                     case XmlPullParser.TEXT:
@@ -64,7 +64,9 @@ public class HandleXML {
                         if(name.equals("entry")){
                             inEntry = false;
                         }
-                        else if(inEntry ==true && name.equals("yt:videoId")){
+                        else if(name.equals("name")){
+                            v.setChannelTitle(text);
+                        }else if(inEntry ==true && name.equals("yt:videoId")){
                             v.setIdYT(text);
                         }
                         else if(inEntry ==true && name.equals("title")){
@@ -79,8 +81,12 @@ public class HandleXML {
                             }catch(ParseException e){
                                 e.printStackTrace();
                             }
-                            this.addVideo(v);
+                        }
+                        else if(name.equals("media:thumbnail")){
+                            v.setThumbnailsUrl(attributZero);
+
                             //we take only the first video
+                            this.addVideo(v);
                             return;
                         }
 

@@ -7,8 +7,8 @@ import android.widget.TextView;
 
 class ItemViewHolder extends RecyclerView.ViewHolder {
 
-    private ImageView imageView;
-    private TextView textView;
+    protected ImageView imageView;
+    protected TextView textView;
 
     public ItemViewHolder(View itemView) {
 

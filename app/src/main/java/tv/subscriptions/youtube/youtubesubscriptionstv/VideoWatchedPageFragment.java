@@ -24,7 +24,8 @@ public class VideoWatchedPageFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         //We fetch the videos already played
-        Cursor resultSet = ((MainActivity)getActivity()).getMydatabase().rawQuery("Select * from T_VIDEO_PLAYED",null);
+        final MainActivity mMainActivity = (MainActivity) getActivity();
+        Cursor resultSet = mMainActivity.getMydatabase().rawQuery("Select * from T_VIDEO_PLAYED",null);
         ArrayList<Video> listPlayedVideos = new ArrayList<Video>();
         for(resultSet.moveToFirst(); !resultSet.isAfterLast(); resultSet.moveToNext()) {
             Video v = new Video();
@@ -42,7 +43,7 @@ public class VideoWatchedPageFragment extends Fragment {
         View view = inflater.inflate(R.layout.videos_watched_page, container, false);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_videos_watched);
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
-        this.adapter = new RecyclerListAdapter();
+        this.adapter = new RecyclerListAdapter(mMainActivity.getBaseContext());
         recyclerView.setAdapter(this.adapter);
         this.adapter.getListVideos().addAll(listPlayedVideos);
         this.adapter.notifyDataSetChanged();
@@ -63,7 +64,7 @@ public class VideoWatchedPageFragment extends Fragment {
                         Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
                         adapter.getListVideos().remove(viewHolder.getAdapterPosition());
                         adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                        ((MainActivity)getActivity()).getMydatabase().execSQL("DELETE FROM T_VIDEO_PLAYED WHERE VideoId='"+idRemovedVideo+"';");
+                        mMainActivity.getMydatabase().execSQL("DELETE FROM T_VIDEO_PLAYED WHERE VideoId='"+idRemovedVideo+"';");
                     }
                 });
         mIth.attachToRecyclerView(recyclerView);

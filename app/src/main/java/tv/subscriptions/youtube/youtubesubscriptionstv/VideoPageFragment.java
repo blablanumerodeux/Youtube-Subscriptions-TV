@@ -22,9 +22,10 @@ public class VideoPageFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.videos_page, container, false);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_videos);
-        ((MainActivity)getActivity()).setAdapter(new RecyclerListAdapter());
+        final MainActivity mActivity = (MainActivity) getActivity();
+        ((MainActivity) getActivity()).setAdapter(new RecyclerListAdapter(mActivity.getBaseContext()));
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
-        this.adapter = ((MainActivity)getActivity()).getAdapter();
+        this.adapter = ((MainActivity) getActivity()).getAdapter();
         recyclerView.setAdapter(this.adapter);
 
         ItemTouchHelper mIth = new ItemTouchHelper(
@@ -42,11 +43,15 @@ public class VideoPageFragment extends Fragment {
                     @Override
                     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                         String directionString = (direction==ItemTouchHelper.LEFT)?"left":"right";
-                        String idRemovedVideo = adapter.getListVideos().get(viewHolder.getAdapterPosition()).getIdYT();
+                        Video video = adapter.getListVideos().get(viewHolder.getAdapterPosition());
+                        String idRemovedVideo = video.getIdYT();
+                        String thumbnailsUrl = video.getThumbnailsUrl();
+                        String channelTitle = video.getChannelTitle();
+                        String title = video.getTitle();
                         Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
                         adapter.getListVideos().remove(viewHolder.getAdapterPosition());
                         adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                        ((MainActivity)getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', 'Title', 'ThumbnailsUrl', 'ChannelTitle');");
+                        ((MainActivity) getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', '"+title+"', '"+thumbnailsUrl+"', '"+channelTitle+"');");
                     }
                 });
         mIth.attachToRecyclerView(recyclerView);

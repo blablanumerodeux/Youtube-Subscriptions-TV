@@ -14,6 +14,7 @@ import com.google.api.client.util.Joiner;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -52,6 +53,7 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
                 .build();
 
         try {
+            //Fetching all the subs
             Response response = client.newCall(request).execute();
             String jsonBody = response.body().string();
             JSONObject userInfo = new JSONObject(jsonBody);
@@ -107,7 +109,7 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
                         listSubscribesIds.add(channelId);
                     }
 
-                    final int progressStatus = (int) ((100*(i+1))/numberOfpages);
+                    final int progressStatus = (int) (((100*(i+1))/numberOfpages)-10);
                     mMainActivity.runOnUiThread(new Runnable() {
                         public void run() {
                             mMainActivity.mProgress.setProgress(progressStatus);
@@ -118,12 +120,6 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
                     //Log.i(LOG_TAG, "taille de la liste recu : "+listSubscribes.length());
                     //Log.i(LOG_TAG, "taille de la liste : "+listSubscribesIds.size());
                 }
-
-                mMainActivity.runOnUiThread(new Runnable() {
-                    public void run() {
-                        mMainActivity.mProgress.setVisibility(View.GONE);
-                    }
-                });
 
                 //Parse the sub rss feed
                 final HandleXML handleXML = new HandleXML();
@@ -136,8 +132,9 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
 
                 return handleXML.getListVideos();
             }
+        } catch (IOException exception) {
+            Log.w(LOG_TAG, "Error while fetching the subscriptions, please retry in a moment.");
         } catch (Exception exception) {
-            //TODO change that
             Log.w(LOG_TAG, exception);
         }
         return null;
@@ -166,6 +163,8 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         listVideos.removeAll(listPlayedVideos);
 
         //Display the list
+        mMainActivity.mProgress.setProgress(100);
+        mMainActivity.mProgress.setVisibility(View.GONE);
         mMainActivity.fab.setVisibility(View.VISIBLE);
         mMainActivity.getAdapter().getListVideos().addAll(listVideos);
         mMainActivity.getAdapter().notifyDataSetChanged();

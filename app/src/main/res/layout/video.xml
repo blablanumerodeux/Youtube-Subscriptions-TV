@@ -6,7 +6,6 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="5dp"
     cardview:cardCornerRadius="2dp"
-    cardview:cardBackgroundColor="@color/colorAccent"
     cardview:cardElevation="3dp"
     cardview:cardUseCompatPadding="true">
 

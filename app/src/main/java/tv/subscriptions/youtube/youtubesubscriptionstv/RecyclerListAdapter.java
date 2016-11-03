@@ -2,6 +2,7 @@ package tv.subscriptions.youtube.youtubesubscriptionstv;
 
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,8 +26,20 @@ public class RecyclerListAdapter extends RecyclerView.Adapter<ItemViewHolder> {
     @Override
     public void onBindViewHolder(ItemViewHolder holder, int position) {
         Video video = this.listVideos.get(position);
-        holder.textView.setText(video.getTitle()/*+"|"+video.getThumbnailsUrl()+"|"+video.getChannelTitle()*/);
+        holder.getTextView().setText(video.getTitle()/*+"|"+video.getThumbnailsUrl()+"|"+video.getChannelTitle()*/);
         //holder.textView.setBackgroundColor(Color.CYAN);
+
+
+
+        //Render image using Picasso library
+        /*if (!TextUtils.isEmpty(video.getThumbnail())) {
+            Picasso.with(mContext).load(video.getThumbnail())
+                    .error(R.drawable.placeholder)
+                    .placeholder(R.drawable.placeholder)
+                    .into(customViewHolder.imageView);
+        }
+*/
+
     }
     @Override
     public int getItemCount() {

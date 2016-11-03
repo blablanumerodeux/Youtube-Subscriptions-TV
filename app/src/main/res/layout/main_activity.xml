@@ -37,50 +37,31 @@
         app:srcCompat="@android:drawable/ic_dialog_email"
         app:layout_anchorGravity="bottom|right|end" />
 
-<!--
 
     <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_marginTop="@dimen/app_bar_height"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fitsSystemWindows="true"
         android:orientation="vertical">
 
-    <android.support.v7.widget.AppCompatButton
-        android:id="@+id/authorize"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/sign_in" />
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:theme="@style/LinearProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:max="100"
+            android:progress="20"
+            android:visibility="gone"
+            style="@style/Widget.AppCompat.ProgressBar"/>
 
-    <android.support.v7.widget.AppCompatButton
-        android:id="@+id/launch_playlist"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/launch_playlist"
-        android:visibility="gone" />
+        <android.support.v4.view.ViewPager
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-    <android.support.v7.widget.AppCompatButton
-        android:id="@+id/signOut"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/sign_out"
-        android:visibility="gone" />
--->
+        </android.support.v4.view.ViewPager>
 
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@android:style/Widget.ProgressBar.Horizontal"
-        android:visibility="gone" />
+    </LinearLayout>
 
-    <android.support.v4.view.ViewPager
-        android:layout_marginTop="?attr/actionBarSize"
-        android:id="@+id/view_pager"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-
-    </android.support.v4.view.ViewPager>
-    <!-- </LinearLayout>-->
 </android.support.design.widget.CoordinatorLayout>

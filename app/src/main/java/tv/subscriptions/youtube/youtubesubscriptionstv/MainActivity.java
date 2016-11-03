@@ -54,6 +54,7 @@ http://www.tutos-android.com/fragment-slider-page-lautre
 https://developer.android.com/training/basics/data-storage/shared-preferences.html
 https://material.google.com/components/lists.html
 http://stackoverflow.com/questions/5273436/how-to-get-activitys-content-view
+http://www.materialdoc.com/linear-progress/
 
  */
 public class MainActivity extends AppCompatActivity {

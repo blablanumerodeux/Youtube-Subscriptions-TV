@@ -123,6 +123,18 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        //we restore the token that has been saved on the SharedPreferences
+        this.enablePostAuthorizationFlows();
+
+        //we load the videos
+        final HandleSubs handleSubs = new HandleSubs(this);
+        mAuthState.performActionWithFreshTokens(this.authorizationService, new AuthState.AuthStateAction() {
+            @Override
+            public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
+                handleSubs.execute(accessToken);
+            }
+        });
     }
 
 
@@ -165,7 +177,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         //we restore the token that has been saved on the SharedPreferences
-        this.enablePostAuthorizationFlows();
+        if (mAuthState==null)
+            this.enablePostAuthorizationFlows();
 
         Log.i(LOG_TAG, "+ ON RESUME +");
     }
@@ -362,15 +375,6 @@ public class MainActivity extends AppCompatActivity {
     private void enablePostAuthorizationFlows() {
         mAuthState = restoreAuthState();
         if (mAuthState != null && mAuthState.isAuthorized()) {
-
-            //we load the videos
-            final HandleSubs handleSubs = new HandleSubs(this);
-            mAuthState.performActionWithFreshTokens(this.authorizationService, new AuthState.AuthStateAction() {
-                @Override
-                public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
-                    handleSubs.execute(accessToken);
-                }
-            });
 
             //Change the button
             if (this.mMenu != null) {

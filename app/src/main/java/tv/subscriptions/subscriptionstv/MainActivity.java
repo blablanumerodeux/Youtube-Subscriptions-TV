@@ -84,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(LOG_TAG, "+ ON CREATE +");
+
         setContentView(R.layout.main_activity);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -126,15 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
         //we restore the token that has been saved on the SharedPreferences
         this.enablePostAuthorizationFlows();
-
-        //we load the videos
-        final HandleSubs handleSubs = new HandleSubs(this);
-        mAuthState.performActionWithFreshTokens(this.authorizationService, new AuthState.AuthStateAction() {
-            @Override
-            public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
-                handleSubs.execute(accessToken);
-            }
-        });
+        this.loadVideos();
     }
 
 
@@ -177,8 +171,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         //we restore the token that has been saved on the SharedPreferences
-        if (mAuthState==null)
-            this.enablePostAuthorizationFlows();
+        this.enablePostAuthorizationFlows();
 
         Log.i(LOG_TAG, "+ ON RESUME +");
     }
@@ -328,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
             Log.i(LOG_TAG, String.format("Handled Authorization Response %s ", authState.toJsonString()));
             AuthorizationService service = this.authorizationService;
             service.performTokenRequest(response.createTokenExchangeRequest(), new AuthorizationService.TokenResponseCallback() {
+
                 @Override
                 public void onTokenRequestCompleted(@Nullable TokenResponse tokenResponse, @Nullable AuthorizationException exception) {
                     if (exception != null) {
@@ -336,6 +330,8 @@ public class MainActivity extends AppCompatActivity {
                         if (tokenResponse != null) {
                             authState.update(tokenResponse, exception);
                             persistAuthState(authState);
+                            loadVideos();
+                            enablePostAuthorizationFlows();
                             Log.i(LOG_TAG, String.format("Token Response [ Access Token: %s, ID Token: %s ]", tokenResponse.accessToken, tokenResponse.idToken));
                         }
                     }
@@ -372,10 +368,23 @@ public class MainActivity extends AppCompatActivity {
                 .apply();
     }
 
+
+    private void loadVideos() {
+        if (mAuthState != null && mAuthState.isAuthorized()) {
+            //we load the videos
+            final HandleSubs handleSubs = new HandleSubs(this);
+            mAuthState.performActionWithFreshTokens(this.authorizationService, new AuthState.AuthStateAction() {
+                @Override
+                public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
+                    handleSubs.execute(accessToken);
+                }
+            });
+        }
+    }
+
     private void enablePostAuthorizationFlows() {
         mAuthState = restoreAuthState();
         if (mAuthState != null && mAuthState.isAuthorized()) {
-
             //Change the button
             if (this.mMenu != null) {
                 ((MenuItem) this.mMenu.findItem(R.id.signOut)).setVisible(true);

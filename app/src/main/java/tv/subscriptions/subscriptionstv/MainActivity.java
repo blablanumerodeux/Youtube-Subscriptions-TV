@@ -138,6 +138,8 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_scrolling, menu);
         this.mMenu = menu;
 
+        //we restore the token that has been saved on the SharedPreferences
+        this.enablePostAuthorizationFlows();
         return true;
     }
 

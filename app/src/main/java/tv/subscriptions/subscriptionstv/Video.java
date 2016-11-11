@@ -1,4 +1,4 @@
-package tv.subscriptions.youtube.youtubesubscriptionstv;
+package tv.subscriptions.subscriptionstv;
 
 import java.util.Date;
 

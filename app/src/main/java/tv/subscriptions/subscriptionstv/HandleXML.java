@@ -1,4 +1,4 @@
-package tv.subscriptions.youtube.youtubesubscriptionstv;
+package tv.subscriptions.subscriptionstv;
 
 import android.net.ParseException;
 import android.util.Log;
@@ -85,9 +85,9 @@ public class HandleXML {
                         else if(name.equals("media:thumbnail")){
                             v.setThumbnailsUrl(attributZero);
 
-                            //we take only the first video
                             this.addVideo(v);
-                            return;
+                            //we take only the first video
+                            //return;
                         }
 
                         break;

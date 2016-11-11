@@ -1,4 +1,4 @@
-package tv.subscriptions.youtube.youtubesubscriptionstv;
+package tv.subscriptions.subscriptionstv;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;

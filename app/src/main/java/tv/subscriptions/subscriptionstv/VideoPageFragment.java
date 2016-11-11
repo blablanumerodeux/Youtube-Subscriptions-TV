@@ -1,4 +1,4 @@
-package tv.subscriptions.youtube.youtubesubscriptionstv;
+package tv.subscriptions.subscriptionstv;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -6,12 +6,13 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import static tv.subscriptions.youtube.youtubesubscriptionstv.MainActivity.LOG_TAG;
+import static tv.subscriptions.subscriptionstv.MainActivity.LOG_TAG;
 
 public class VideoPageFragment extends Fragment {
 
@@ -51,7 +52,7 @@ public class VideoPageFragment extends Fragment {
                         Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
                         adapter.getListVideos().remove(viewHolder.getAdapterPosition());
                         adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                        ((MainActivity) getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', '"+title+"', '"+thumbnailsUrl+"', '"+channelTitle+"');");
+                        ((MainActivity) getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', '"+ TextUtils.htmlEncode(title)+"', '"+thumbnailsUrl+"', '"+TextUtils.htmlEncode(channelTitle)+"');");
                     }
                 });
         mIth.attachToRecyclerView(recyclerView);

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="tv.subscriptions.youtube.youtubesubscriptionstv">
+    package="tv.subscriptions.subscriptionstv">
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/icone"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:versionCode="1"
         android:versionName="alpha"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="tv.subscriptions.subscriptionstv.MainActivity"
             android:label="@string/app_name"
             android:configChanges="orientation|screenSize"
             android:theme="@style/AppTheme.NoActionBar">
@@ -21,18 +21,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="tv.subscriptions.youtube.youtubesubscriptionstv.HANDLE_AUTHORIZATION_RESPONSE"/>
+                <action android:name="tv.subscriptions.subscriptionstv.HANDLE_AUTHORIZATION_RESPONSE"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
         <activity
-            android:parentActivityName=".MainActivity"
             android:name="net.openid.appauth.RedirectUriReceiverActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="tv.subscriptions.youtube.youtubesubscriptionstv"/>
+                <data android:scheme="tv.subscriptions.subscriptionstv"/>
             </intent-filter>
         </activity>
     </application>

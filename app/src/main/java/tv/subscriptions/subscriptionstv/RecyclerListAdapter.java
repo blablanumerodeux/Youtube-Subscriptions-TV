@@ -1,7 +1,6 @@
-package tv.subscriptions.youtube.youtubesubscriptionstv;
+package tv.subscriptions.subscriptionstv;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;

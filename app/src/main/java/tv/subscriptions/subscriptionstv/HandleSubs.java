@@ -1,4 +1,4 @@
-package tv.subscriptions.youtube.youtubesubscriptionstv;
+package tv.subscriptions.subscriptionstv;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -27,7 +27,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static tv.subscriptions.youtube.youtubesubscriptionstv.MainActivity.LOG_TAG;
+import static tv.subscriptions.subscriptionstv.MainActivity.LOG_TAG;
 
 class HandleSubs extends AsyncTask<String, Void, List<Video>> {
 

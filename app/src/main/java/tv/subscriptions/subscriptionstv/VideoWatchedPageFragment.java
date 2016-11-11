@@ -1,4 +1,4 @@
-package tv.subscriptions.youtube.youtubesubscriptionstv;
+package tv.subscriptions.subscriptionstv;
 
 import android.database.Cursor;
 import android.os.Bundle;
@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
-import static tv.subscriptions.youtube.youtubesubscriptionstv.MainActivity.LOG_TAG;
+import static tv.subscriptions.subscriptionstv.MainActivity.LOG_TAG;
 
 public class VideoWatchedPageFragment extends Fragment {
 

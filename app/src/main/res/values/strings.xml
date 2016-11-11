@@ -1,13 +1,13 @@
 <resources>
-    <string name="app_name">Youtube Subscriptions TV</string>
-    <string name="action_settings">Settings</string>
-    <string name="sign_in">Signin</string>
-    <string name="sign_out">Signout</string>
-    <string name="launch_playlist">Launch playlist</string>
+    <string name="app_name">Subscriptions TV</string>
+    <string name="action_settings">Paramètres</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_out">Sign out</string>
+    <string name="launch_playlist">Lancer la playlist</string>
     <string name="request_complete">API Call Successful.</string>
     <string name="request_failed">API Call Failed.</string>
     <string name="api_key">YOUR API KEY HERE</string><!--//TODO CHANGE THE API KEY-->
-    <string name="tab_videos">Videos</string>
-    <string name="tab_videos_watched">Videos Watched</string>
-    <string name="clientId">99998132999-okeq5mdnjj3uv6q4kape9emq0eeg92ge.apps.googleusercontent.com</string>
+    <string name="tab_videos">Abonnements</string>
+    <string name="tab_videos_watched">Videos vues</string>
+    <string name="clientId">623593049034-45pn8e8i4bv6gc0tim6qdp788ct6a128.apps.googleusercontent.com</string>
 </resources>

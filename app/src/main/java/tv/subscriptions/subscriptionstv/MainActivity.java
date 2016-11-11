@@ -1,4 +1,4 @@
-package tv.subscriptions.youtube.youtubesubscriptionstv;
+package tv.subscriptions.subscriptionstv;
 
 import android.app.PendingIntent;
 import android.content.Context;
@@ -13,7 +13,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
@@ -120,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         this.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "You need to Signin to launch the playlist", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "You need to sign in to launch the playlist", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -132,9 +131,6 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_scrolling, menu);
         this.mMenu = menu;
-
-        //we restore the token that has been saved on the SharedPreferences
-        this.enablePostAuthorizationFlows();
 
         return true;
     }
@@ -167,6 +163,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        //we restore the token that has been saved on the SharedPreferences
+        this.enablePostAuthorizationFlows();
+
         Log.i(LOG_TAG, "+ ON RESUME +");
     }
 
@@ -185,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        this.clearAuthState();
         this.authorizationService.dispose();
         if (mydatabase.isOpen())
             mydatabase.close();
@@ -249,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
             );
 
             String clientId = mMainActivity.getString(R.string.clientId);
-            Uri redirectUri = Uri.parse("tv.subscriptions.youtube.youtubesubscriptionstv:/oauth2redirect");
+            Uri redirectUri = Uri.parse("tv.subscriptions.subscriptionstv:/oauth2redirect");
             AuthorizationRequest.Builder builder = new AuthorizationRequest.Builder(
                     serviceConfiguration,
                     clientId,
@@ -259,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
             builder.setScope("https://www.googleapis.com/auth/youtube.readonly");
             AuthorizationRequest request = builder.build();
 
-            String action = "tv.subscriptions.youtube.youtubesubscriptionstv.HANDLE_AUTHORIZATION_RESPONSE";
+            String action = "tv.subscriptions.subscriptionstv.HANDLE_AUTHORIZATION_RESPONSE";
             Intent postAuthorizationIntent = new Intent(action);
             PendingIntent pendingIntent = PendingIntent.getActivity(view.getContext(), request.hashCode(), postAuthorizationIntent, 0);
             this.authorizationService.performAuthorizationRequest(request, pendingIntent);
@@ -288,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
         if (intent != null) {
             String action = intent.getAction();
             switch (action) {
-                case "tv.subscriptions.youtube.youtubesubscriptionstv.HANDLE_AUTHORIZATION_RESPONSE":
+                case "tv.subscriptions.subscriptionstv.HANDLE_AUTHORIZATION_RESPONSE":
                     if (!intent.hasExtra(USED_INTENT)) {
                         handleAuthorizationResponse(intent);
                         intent.putExtra(USED_INTENT, true);
@@ -374,20 +373,13 @@ public class MainActivity extends AppCompatActivity {
             });
 
             //Change the button
-            //mSignOut.setVisibility(View.VISIBLE);
             if (this.mMenu != null) {
                 ((MenuItem) this.mMenu.findItem(R.id.signOut)).setVisible(true);
-                //mLaunchPlaylist.setVisibility(View.GONE);
-                //mSignOut.setOnClickListener(new SignOutListener(this));
-                //mAuthorize.setVisibility(View.GONE);
                 ((MenuItem) this.mMenu.findItem(R.id.authorize)).setVisible(false);
             }
         } else {
             if (this.mMenu != null) {
-                //mSignOut.setVisibility(View.GONE);
                 ((MenuItem) this.mMenu.findItem(R.id.signOut)).setVisible(false);
-                //mLaunchPlaylist.setVisibility(View.GONE);
-                //mAuthorize.setVisibility(View.VISIBLE);
                 ((MenuItem) this.mMenu.findItem(R.id.authorize)).setVisible(true);
             }
         }

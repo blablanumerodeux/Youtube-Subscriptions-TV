@@ -12,13 +12,16 @@ import android.widget.Button;
 import com.google.api.client.util.Joiner;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -37,105 +40,107 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         this.mMainActivity=mMainActivity;
     }
 
-    @Override
-    protected List<Video> doInBackground(String... tokens) {
-        OkHttpClient client = new OkHttpClient();
+    private String processPageSubscriptionsAndChannelIds(JSONObject userInfo, ArrayList<String> listSubscribesIds, Map<String, Integer> listSubscribesIdsMap){
+        //Get the subs channelsIDs
+        String nextPageToken = userInfo.optString("nextPageToken", null);
 
-        mMainActivity.runOnUiThread(new Runnable() {
-            public void run() {
-                mMainActivity.mProgress.setVisibility(View.VISIBLE);
+        //we keep the subscriptionsID list
+        JSONArray listSubscribes = (JSONArray) userInfo.optJSONArray("items");
+        for (int j = 0; j < listSubscribes.length(); j++){
+            String channelId = listSubscribes.optJSONObject(j).optJSONObject("snippet").optJSONObject("resourceId").optString("channelId");
+            //int newItemCount = listSubscribes.optJSONObject(j).optJSONObject("contentDetails").optInt("newItemCount");
+            if (channelId.isEmpty()){
+                channelId= "EMPTY CHANNEL ID";
+                Log.w(LOG_TAG, "EMPTY CHANNEL ID !");
             }
-        });
+            listSubscribesIds.add(channelId);
+            //listSubscribesIdsMap.put(channelId, newItemCount);
+        }
+        return nextPageToken;
+    }
 
+    private JSONObject requestAPI(String urlRequest, String token){
+        OkHttpClient client = new OkHttpClient();
+        //We request the next page
         Request request = new Request.Builder()
-                .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults="+mMainActivity.getMaxResultsPerPageYTAPI()+"&mine=true&order=alphabetical&fields=etag%2Citems(id%2Csnippet(channelId%2CresourceId%2FchannelId))%2CnextPageToken%2CpageInfo&key="+mMainActivity.getApiKey())
-                .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
+                .url(urlRequest)
+                .addHeader("Authorization", String.format("Bearer %s", token))
                 .build();
-
         try {
-            //Fetching all the subs
             Response response = client.newCall(request).execute();
             String jsonBody = response.body().string();
             JSONObject userInfo = new JSONObject(jsonBody);
-            //Log.i(LOG_TAG, String.format("Subscriptions %s", jsonBody));
-            String message;
-            if (userInfo.has("error")) {
-                message = String.format("%s [%s]", mMainActivity.getString(R.string.request_failed), userInfo.optString("error_description", "No description"));
-            } else {
-                message = mMainActivity.getString(R.string.request_complete);
-            }
+            return userInfo;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-            if (userInfo != null) {
+    private void requestSubList(ArrayList<String> listSubscribesIds, Map<String, Integer> listSubscribesIdsMapNewActivityCount, String... tokens){
 
-                //Get the subs channelsIDs
-                ArrayList<String> listSubscribesIds = new ArrayList<String>();
-                final Double numberOfpages = Math.ceil(userInfo.optJSONObject("pageInfo").optDouble("totalResults")/mMainActivity.getMaxResultsPerPageYTAPI());
-                String nextPageToken = userInfo.optString("nextPageToken", null);
-                Log.i(LOG_TAG, "Number of subs : "+userInfo.optJSONObject("pageInfo").optDouble("totalResults"));
+        String urlRequest = "https://www.googleapis.com/youtube/v3/subscriptions?part=contentDetails%2Csnippet&maxResults="+mMainActivity.getMaxResultsPerPageYTAPI()+"&mine=true&order=unread&fields=etag%2Citems(contentDetails%2FnewItemCount%2Cid%2Csnippet(channelId%2CresourceId%2FchannelId))%2CnextPageToken%2CpageInfo&key="+mMainActivity.getApiKey();
+        JSONObject userInfo = this.requestAPI(urlRequest, tokens[0]);
 
-                //we keep the subscriptionsID list
-                JSONArray listSubscribes = (JSONArray) userInfo.optJSONArray("items");
-                for (int j = 0; j < listSubscribes.length(); j++){
-                    String channelId = listSubscribes.optJSONObject(j).optJSONObject("snippet").optJSONObject("resourceId").optString("channelId");
-                    if (channelId.isEmpty()){
-                        channelId= "EMPTY CHANNEL ID";
-                        Log.w(LOG_TAG, "EMPTY CHANNEL ID !");
+        if (userInfo != null) {
+
+            final Double numberOfpages = Math.ceil(userInfo.optJSONObject("pageInfo").optDouble("totalResults")/mMainActivity.getMaxResultsPerPageYTAPI());
+            String nextPageToken = this.processPageSubscriptionsAndChannelIds(userInfo, listSubscribesIds, listSubscribesIdsMapNewActivityCount);
+            Log.i(LOG_TAG, "Number of subs : "+userInfo.optJSONObject("pageInfo").optDouble("totalResults"));
+
+            for (int i = 1; i < numberOfpages; i++) {
+
+                urlRequest = "https://www.googleapis.com/youtube/v3/subscriptions?part=contentDetails%2Csnippet&maxResults="+mMainActivity.getMaxResultsPerPageYTAPI()+"&mine=true&order=unread&pageToken="+nextPageToken+"&fields=etag%2Citems(contentDetails%2FnewItemCount%2Cid%2Csnippet(channelId%2CresourceId%2FchannelId))%2CnextPageToken%2CpageInfo"+"&key="+mMainActivity.getApiKey();
+                userInfo = requestAPI(urlRequest, tokens[0]);
+                nextPageToken = this.processPageSubscriptionsAndChannelIds(userInfo, listSubscribesIds, listSubscribesIdsMapNewActivityCount);
+
+                final int progressStatus = (int) (((100*(i+1))/numberOfpages)-10);
+                mMainActivity.runOnUiThread(new Runnable() {
+                    public void run() {
+                        mMainActivity.mProgress.setProgress(progressStatus);
                     }
-                    listSubscribesIds.add(channelId);
-                }
-                Log.i(LOG_TAG, "page : 1/"+numberOfpages+"; nextPageToken : "+nextPageToken);
+                });
+                Log.i(LOG_TAG, "page : "+ (i+1) + "/"+numberOfpages+"; nextPageToken : "+nextPageToken);
                 //Log.i(LOG_TAG, "taille de la liste recu : "+listSubscribes.length());
                 //Log.i(LOG_TAG, "taille de la liste : "+listSubscribesIds.size());
-
-                for (int i = 1; i < numberOfpages; i++) {
-                    //We request the next page
-                    request = new Request.Builder()
-                            .url("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&maxResults="+mMainActivity.getMaxResultsPerPageYTAPI()+"&mine=true&order=alphabetical&pageToken="+nextPageToken+"&fields=etag%2Citems(id%2Csnippet(channelId%2CresourceId%2FchannelId))%2CnextPageToken%2CpageInfo"+"&key="+mMainActivity.getApiKey())
-                            .addHeader("Authorization", String.format("Bearer %s", tokens[0]))
-                            .build();
-                    response = client.newCall(request).execute();
-                    jsonBody = response.body().string();
-                    userInfo = new JSONObject(jsonBody);
-
-                    nextPageToken = userInfo.optString("nextPageToken", null);
-                    listSubscribes = (JSONArray) userInfo.optJSONArray("items");
-                    for (int j = 0; j < listSubscribes.length(); j++){
-                        //TODO Secure this if opt... return null
-                        String channelId = listSubscribes.optJSONObject(j).optJSONObject("snippet").optJSONObject("resourceId").optString("channelId");
-                        if (channelId.isEmpty()){
-                            channelId= "EMPTY CHANNEL ID";
-                            Log.w(LOG_TAG, "EMPTY CHANNEL ID !");
-                        }
-                        listSubscribesIds.add(channelId);
-                    }
-
-                    final int progressStatus = (int) (((100*(i+1))/numberOfpages)-10);
-                    mMainActivity.runOnUiThread(new Runnable() {
-                        public void run() {
-                            mMainActivity.mProgress.setProgress(progressStatus);
-                        }
-                    });
-
-                    Log.i(LOG_TAG, "page : "+ (i+1) + "/"+numberOfpages+"; nextPageToken : "+nextPageToken);
-                    //Log.i(LOG_TAG, "taille de la liste recu : "+listSubscribes.length());
-                    //Log.i(LOG_TAG, "taille de la liste : "+listSubscribesIds.size());
-                }
-
-                //Parse the sub rss feed
-                final HandleXML handleXML = new HandleXML();
-                ExecutorService threadPool = Executors.newFixedThreadPool(mMainActivity.getMaxResultsPerPageYTAPI());
-                for (String channelId : listSubscribesIds) {
-                    threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId));
-                }
-                threadPool.shutdown();
-                threadPool.awaitTermination(5, TimeUnit.MINUTES);
-
-                return handleXML.getListVideos();
+                //Youtube do not return always the exact numbers of subs asked. Don't know why...
             }
-        } catch (IOException exception) {
-            Log.w(LOG_TAG, "Error while fetching the subscriptions, please retry in a moment.");
-        } catch (Exception exception) {
-            Log.w(LOG_TAG, exception);
+        }
+    }
+
+    @Override
+    protected List<Video> doInBackground(String... tokens) {
+
+        mMainActivity.runOnUiThread(new Runnable() {
+            public void run() {
+            mMainActivity.mProgress.setVisibility(View.VISIBLE);
+            }
+        });
+
+        ArrayList<String> listSubscribesIds = new ArrayList<String>();
+        Map<String, Integer> listSubscribesIdsMapNewActivityCount = new HashMap<String, Integer>();
+        this.requestSubList(listSubscribesIds, listSubscribesIdsMapNewActivityCount, tokens);
+
+        try {
+            //Parse the sub rss feed
+            final HandleXML handleXML = new HandleXML(listSubscribesIdsMapNewActivityCount);
+            ExecutorService threadPool = Executors.newFixedThreadPool(mMainActivity.getMaxResultsPerPageYTAPI());
+            for (String channelId : listSubscribesIds) {
+                if (listSubscribesIdsMapNewActivityCount.get(channelId)>0){
+                    threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId, false));
+                }else{
+                    threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId, true));
+                }
+            }
+            threadPool.shutdown();
+
+            threadPool.awaitTermination(5, TimeUnit.MINUTES);
+
+            return handleXML.getListVideos();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         return null;
     }

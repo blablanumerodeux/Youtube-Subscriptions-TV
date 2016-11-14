@@ -13,12 +13,14 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 
 public class HandleXML {
 
     private XmlPullParserFactory xmlFactoryObject;
     public volatile boolean parsingComplete = true;
+    private Map<String, Integer> listSubscribesIdsMapNewActivityCount;
 
     private ArrayList<Video> listVideos = new ArrayList<Video>();
     public ArrayList<Video> getListVideos() {
@@ -28,10 +30,14 @@ public class HandleXML {
         this.listVideos.add(video);
     }
 
+    public HandleXML(Map<String, Integer> listChannelIdsMapNewActivityCount) {
+        this.listSubscribesIdsMapNewActivityCount = listChannelIdsMapNewActivityCount;
+    }
+
     /*
-    Parsing the rss feed of a youtube channel
-     */
-    public void parseXMLAndStoreIt(XmlPullParser myParser) {
+        Parsing the rss feed of a youtube channel
+         */
+    public void parseXMLAndStoreIt(XmlPullParser myParser, boolean storeInAlreadyWatched) {
 
         int event;
         String text=null;
@@ -85,7 +91,11 @@ public class HandleXML {
                         else if(name.equals("media:thumbnail")){
                             v.setThumbnailsUrl(attributZero);
 
-                            this.addVideo(v);
+                            //if (storeInAlreadyWatched){
+                                //add the video in the database
+                            //}else {
+                                this.addVideo(v);
+                            //}
                             //we take only the first video
                             //return;
                         }
@@ -102,7 +112,7 @@ public class HandleXML {
         }
     }
 
-    public Thread fetchXML(final String urlString){
+    public Thread fetchXML(final String urlString, final boolean storeInAlreadyWatched){
         Thread thread = new Thread(new Runnable(){
             @Override
             public void run() {
@@ -125,7 +135,7 @@ public class HandleXML {
                 myparser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
                 myparser.setInput(stream, null);
 
-                parseXMLAndStoreIt(myparser);
+                parseXMLAndStoreIt(myparser, storeInAlreadyWatched);
                 stream.close();
             } catch (Exception e) {
                 Log.e(MainActivity.LOG_TAG, e.toString());

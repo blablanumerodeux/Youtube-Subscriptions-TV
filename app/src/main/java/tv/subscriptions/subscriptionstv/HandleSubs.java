@@ -97,11 +97,11 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
                 nextPageToken = this.processPageSubscriptionsAndChannelIds(userInfo, listSubscribesIds, listSubscribesIdsMapNewActivityCount);
 
                 final int progressStatus = (int) (((100*(i+1))/numberOfpages)-10);
-                mMainActivity.runOnUiThread(new Runnable() {
+                /*mMainActivity.runOnUiThread(new Runnable() {
                     public void run() {
                         mMainActivity.mProgress.setProgress(progressStatus);
                     }
-                });
+                });*/
                 Log.i(LOG_TAG, "page : "+ (i+1) + "/"+numberOfpages+"; nextPageToken : "+nextPageToken);
                 //Log.i(LOG_TAG, "taille de la liste recu : "+listSubscribes.length());
                 //Log.i(LOG_TAG, "taille de la liste : "+listSubscribesIds.size());
@@ -113,11 +113,11 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
     @Override
     protected List<Video> doInBackground(String... tokens) {
 
-        mMainActivity.runOnUiThread(new Runnable() {
+        /*mMainActivity.runOnUiThread(new Runnable() {
             public void run() {
             mMainActivity.mProgress.setVisibility(View.VISIBLE);
             }
-        });
+        });*/
 
         ArrayList<String> listSubscribesIds = new ArrayList<String>();
         Map<String, Integer> listSubscribesIdsMapNewActivityCount = new HashMap<String, Integer>();
@@ -128,11 +128,11 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
             final HandleXML handleXML = new HandleXML(listSubscribesIdsMapNewActivityCount);
             ExecutorService threadPool = Executors.newFixedThreadPool(mMainActivity.getMaxResultsPerPageYTAPI());
             for (String channelId : listSubscribesIds) {
-                if (listSubscribesIdsMapNewActivityCount.get(channelId)>0){
+                //if (listSubscribesIdsMapNewActivityCount.get(channelId)>0){
                     threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId, false));
-                }else{
-                    threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId, true));
-                }
+                //}else{
+                    //threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId, true));
+                //}
             }
             threadPool.shutdown();
 
@@ -168,16 +168,14 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         listVideos.removeAll(listPlayedVideos);
 
         //Display the list
-        mMainActivity.mProgress.setProgress(100);
-        mMainActivity.mProgress.setVisibility(View.GONE);
-        mMainActivity.fab.setVisibility(View.VISIBLE);
+        //mMainActivity.mProgress.setProgress(100);
+        //mMainActivity.mProgress.setVisibility(View.GONE);
+        //mMainActivity.fab.setVisibility(View.VISIBLE);
         mMainActivity.getAdapter().getListVideos().addAll(listVideos);
         mMainActivity.getAdapter().notifyDataSetChanged();
 
         //manage the intent button
-        //mMainActivity.mLaunchPlaylist.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.getFullUrl()));
         mMainActivity.fab.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.getFullUrl()));
-
         //Log.i(LOG_TAG, "onPostExecute "+ Looper.myLooper().getThread().getName());
     }
 }

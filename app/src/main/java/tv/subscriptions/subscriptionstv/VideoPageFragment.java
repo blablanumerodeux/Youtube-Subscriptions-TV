@@ -2,6 +2,8 @@ package tv.subscriptions.subscriptionstv;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,22 +14,35 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import net.openid.appauth.AuthState;
+import net.openid.appauth.AuthorizationException;
+
 import static tv.subscriptions.subscriptionstv.MainActivity.LOG_TAG;
 
 public class VideoPageFragment extends Fragment {
 
     private RecyclerListAdapter adapter;
+    private MainActivity mActivity;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.videos_page, container, false);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_videos);
-        final MainActivity mActivity = (MainActivity) getActivity();
-        ((MainActivity) getActivity()).setAdapter(new RecyclerListAdapter(mActivity.getBaseContext()));
+        this.mActivity = (MainActivity) getActivity();
+        this.mActivity.setAdapter(new RecyclerListAdapter(mActivity.getBaseContext()));
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
-        this.adapter = ((MainActivity) getActivity()).getAdapter();
+        this.adapter = this.mActivity.getAdapter();
         recyclerView.setAdapter(this.adapter);
+
+        mActivity.fab = (FloatingActionButton) view.findViewById(R.id.launch_playlist);
+        mActivity.fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "You need to sign in to launch the playlist", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
 
         ItemTouchHelper mIth = new ItemTouchHelper(
                 new ItemTouchHelper.SimpleCallback(ItemTouchHelper.ANIMATION_TYPE_SWIPE_CANCEL, ItemTouchHelper.RIGHT) {
@@ -52,12 +67,25 @@ public class VideoPageFragment extends Fragment {
                         Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
                         adapter.getListVideos().remove(viewHolder.getAdapterPosition());
                         adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                        ((MainActivity) getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', '"+ TextUtils.htmlEncode(title)+"', '"+thumbnailsUrl+"', '"+TextUtils.htmlEncode(channelTitle)+"');");
+                        mActivity.getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', '"+ TextUtils.htmlEncode(title)+"', '"+thumbnailsUrl+"', '"+TextUtils.htmlEncode(channelTitle)+"');");
                     }
                 });
         mIth.attachToRecyclerView(recyclerView);
-
+        this.loadVideos();
         return view;
+    }
+
+    public void loadVideos() {
+        if (mActivity.mAuthState != null && mActivity.mAuthState.isAuthorized()) {
+            //we load the videos
+            final HandleSubs handleSubs = new HandleSubs(mActivity);
+            mActivity.mAuthState.performActionWithFreshTokens(mActivity.authorizationService, new AuthState.AuthStateAction() {
+                @Override
+                public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
+                    handleSubs.execute(accessToken);
+                }
+            });
+        }
     }
 
     @Override

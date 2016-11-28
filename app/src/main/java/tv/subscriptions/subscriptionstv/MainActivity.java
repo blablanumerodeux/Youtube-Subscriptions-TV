@@ -3,6 +3,7 @@ package tv.subscriptions.subscriptionstv;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -10,10 +11,16 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
@@ -54,6 +61,7 @@ https://developer.android.com/training/basics/data-storage/shared-preferences.ht
 https://material.google.com/components/lists.html
 http://stackoverflow.com/questions/5273436/how-to-get-activitys-content-view
 http://www.materialdoc.com/linear-progress/
+https://guides.codepath.com/android/Fragment-Navigation-Drawer#persistent-navigation-drawer
 
  */
 public class MainActivity extends AppCompatActivity {
@@ -65,8 +73,13 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar mProgress;
     ViewPager mViewPager;
     TabLayout mTabLayout;
+    Toolbar toolbar;
+    private DrawerLayout mDrawer;
+    private NavigationView nvDrawer;
+    ActionBarDrawerToggle drawerToggle;
     Menu mMenu;
     FloatingActionButton fab;
+
     private static final String SHARED_PREFERENCES_NAME = "Youtube Subs TV";
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
@@ -77,36 +90,48 @@ public class MainActivity extends AppCompatActivity {
     private String apiKey;
     private int maxResultsPerPageYTAPI;
     private SQLiteDatabase mydatabase;
-    private AuthorizationService authorizationService;
+    AuthorizationService authorizationService;
     // state
     AuthState mAuthState;
+
+    Fragment vf;
+    Fragment vwf;
+    FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(LOG_TAG, "+ ON CREATE +");
 
-        setContentView(R.layout.main_activity);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setContentView(R.layout.drawer_layout);
+
+        this.toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         this.authorizationService = new AuthorizationService(this);
         this.mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
         //this.mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService, this));
         this.mSignOut = (AppCompatButton) findViewById(R.id.signOut);
         //this.mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
         this.mProgress = (ProgressBar) findViewById(R.id.progress_bar);
-        this.mViewPager = (ViewPager) findViewById(R.id.view_pager);
+        /*this.mViewPager = (ViewPager) findViewById(R.id.view_pager);
         this.mTabLayout = (TabLayout) findViewById(R.id.tab_layout);
-        this.mTabLayout.setupWithViewPager(mViewPager);
+        this.mTabLayout.setupWithViewPager(mViewPager);*/
 
-        List<Fragment> fragments = new Vector();
+        /*List<Fragment> fragments = new Vector();
         fragments.add(Fragment.instantiate(this,VideoPageFragment.class.getName()));
         fragments.add(Fragment.instantiate(this,VideoWatchedPageFragment.class.getName()));
         this.mPagerAdapter = new MyPagerAdapter(super.getSupportFragmentManager(), fragments);
         this.mViewPager.setAdapter(this.mPagerAdapter);
         this.mTabLayout.getTabAt(0).setText(R.string.tab_videos);
-        this.mTabLayout.getTabAt(1).setText(R.string.tab_videos_watched);
+        this.mTabLayout.getTabAt(1).setText(R.string.tab_videos_watched);*/
         //this.mTabLayout.getTabAt(1).select();
+
+        this.mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        this.nvDrawer = (NavigationView) findViewById(R.id.nvView);
+        this.drawerToggle = setupDrawerToggle();
+        this.mDrawer.addDrawerListener(drawerToggle);
+        this.setupDrawerContent(nvDrawer);
 
         this.apiKey = getString(R.string.api_key);
 
@@ -117,18 +142,69 @@ public class MainActivity extends AppCompatActivity {
         //this.mydatabase.execSQL("DROP TABLE T_VIDEO_PLAYED");
         this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
 
-        this.fab = (FloatingActionButton) findViewById(R.id.launch_playlist);
-        this.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "You need to sign in to launch the playlist", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         //we restore the token that has been saved on the SharedPreferences
         this.enablePostAuthorizationFlows();
-        this.loadVideos();
+
+        vf = new VideoPageFragment();
+        vwf = new VideoWatchedPageFragment();
+        fragmentManager = getSupportFragmentManager();
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.add(R.id.flContent, vf, "A");
+        ft.add(R.id.flContent, vwf, "B");
+        ft.hide(vwf);
+        ft.commit();
+    }
+
+    private ActionBarDrawerToggle setupDrawerToggle() {
+        // NOTE: Make sure you pass in a valid toolbar reference.  ActionBarDrawToggle() does not require it
+        // and will not render the hamburger icon without it.
+        return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open,  R.string.drawer_close);
+    }
+
+    private void setupDrawerContent(NavigationView navigationView) {
+        navigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        selectDrawerItem(menuItem);
+                        return true;
+                    }
+                });
+    }
+
+    public void selectDrawerItem(MenuItem menuItem) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        switch(menuItem.getItemId()) {
+            case R.id.nav_first_fragment:
+                ft.hide(vwf);
+                ft.show(vf);
+                break;
+            case R.id.nav_third_fragment:
+                ft.hide(vf);
+                ft.show(vwf);
+                break;
+            default:
+                ft.hide(vwf);
+                ft.show(vf);
+                break;
+        }
+        ft.commit();
+        /*try {
+            fragment = (Fragment) fragmentClass.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+
+        // Insert the fragment by replacing any existing fragment
+        /*FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.flContent, fragment).commit();*/
+
+        // Highlight the selected item has been done by NavigationView
+        menuItem.setChecked(true);
+        // Set action bar title
+        setTitle(menuItem.getTitle());
+        // Close the navigation drawer
+        mDrawer.closeDrawers();
     }
 
 
@@ -140,24 +216,29 @@ public class MainActivity extends AppCompatActivity {
 
         //we restore the token that has been saved on the SharedPreferences
         this.enablePostAuthorizationFlows();
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.authorize:
-                AuthorizeListener authListener = new AuthorizeListener(authorizationService, this);
-                authListener.onClick(this.findViewById(android.R.id.content).getRootView());
-                return true;
-            case R.id.signOut:
-                SignOutListener signOutListener = new SignOutListener(this);
-                signOutListener.onClick(findViewById(R.id.signOut));
-                return true;
-            case R.id.action_settings:
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (drawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }else {
+            switch (item.getItemId()) {
+                case R.id.authorize:
+                    AuthorizeListener authListener = new AuthorizeListener(authorizationService, this);
+                    authListener.onClick(this.findViewById(android.R.id.content).getRootView());
+                    return true;
+                case R.id.signOut:
+                    SignOutListener signOutListener = new SignOutListener(this);
+                    signOutListener.onClick(findViewById(R.id.signOut));
+                    return true;
+                case R.id.action_settings:
+                    return true;
+                default:
+                    return super.onOptionsItemSelected(item);
+            }
         }
     }
 
@@ -197,6 +278,24 @@ public class MainActivity extends AppCompatActivity {
         if (mydatabase.isOpen())
             mydatabase.close();
         Log.i(LOG_TAG, "- ON DESTROY -");
+    }
+
+    // `onPostCreate` called when activity start-up is complete after `onStart()`
+    // NOTE 1: Make sure to override the method with only a single `Bundle` argument
+    // Note 2: Make sure you implement the correct `onPostCreate(Bundle savedInstanceState)` method.
+    // There are 2 signatures and only `onPostCreate(Bundle state)` shows the hamburger icon.
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        drawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Pass any configuration change to the drawer toggles
+        drawerToggle.onConfigurationChanged(newConfig);
     }
 
     public String getFullUrl() {
@@ -332,7 +431,7 @@ public class MainActivity extends AppCompatActivity {
                         if (tokenResponse != null) {
                             authState.update(tokenResponse, exception);
                             persistAuthState(authState);
-                            loadVideos();
+                            //loadVideos();
                             enablePostAuthorizationFlows();
                             Log.i(LOG_TAG, String.format("Token Response [ Access Token: %s, ID Token: %s ]", tokenResponse.accessToken, tokenResponse.idToken));
                         }
@@ -368,20 +467,6 @@ public class MainActivity extends AppCompatActivity {
                 .edit()
                 .remove(AUTH_STATE)
                 .apply();
-    }
-
-
-    private void loadVideos() {
-        if (mAuthState != null && mAuthState.isAuthorized()) {
-            //we load the videos
-            final HandleSubs handleSubs = new HandleSubs(this);
-            mAuthState.performActionWithFreshTokens(this.authorizationService, new AuthState.AuthStateAction() {
-                @Override
-                public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
-                    handleSubs.execute(accessToken);
-                }
-            });
-        }
     }
 
     private void enablePostAuthorizationFlows() {

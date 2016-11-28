@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -23,6 +24,7 @@ public class VideoPageFragment extends Fragment {
 
     private RecyclerListAdapter adapter;
     private MainActivity mActivity;
+    private SwipeRefreshLayout swipeContainer;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -34,6 +36,17 @@ public class VideoPageFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
         this.adapter = this.mActivity.getAdapter();
         recyclerView.setAdapter(this.adapter);
+        swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // Your code to refresh the list here.
+                // Make sure you call swipeContainer.setRefreshing(false)
+                // once the network request has completed successfully.
+                fetchTimelineAsync(0);
+            }
+        });
+
 
         mActivity.fab = (FloatingActionButton) view.findViewById(R.id.launch_playlist);
         mActivity.fab.setOnClickListener(new View.OnClickListener() {
@@ -75,13 +88,25 @@ public class VideoPageFragment extends Fragment {
         return view;
     }
 
+    public void fetchTimelineAsync(int page) {
+        //adapter.clear();
+        mActivity.getAdapter().clear();
+        this.loadVideos();
+    }
+
     public void loadVideos() {
         if (mActivity.mAuthState != null && mActivity.mAuthState.isAuthorized()) {
             //we load the videos
-            final HandleSubs handleSubs = new HandleSubs(mActivity);
+            final HandleSubs handleSubs = new HandleSubs(mActivity,swipeContainer);
             mActivity.mAuthState.performActionWithFreshTokens(mActivity.authorizationService, new AuthState.AuthStateAction() {
+
                 @Override
                 public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException exception) {
+                    mActivity.runOnUiThread(new Runnable() {
+                        public void run() {
+                            swipeContainer.setRefreshing(true);
+                        }
+                    });
                     handleSubs.execute(accessToken);
                 }
             });
@@ -92,4 +117,5 @@ public class VideoPageFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
     }
+
 }

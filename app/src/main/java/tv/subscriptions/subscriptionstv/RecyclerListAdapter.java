@@ -47,8 +47,13 @@ public class RecyclerListAdapter extends RecyclerView.Adapter<ItemViewHolder> {
         }
 
     }
+
     @Override
     public int getItemCount() {
         return this.listVideos.size();
+    }
+
+    public void clear() {
+        this.listVideos = new ArrayList<Video>();
     }
 }

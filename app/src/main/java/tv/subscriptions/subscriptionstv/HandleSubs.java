@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -35,9 +36,11 @@ import static tv.subscriptions.subscriptionstv.MainActivity.LOG_TAG;
 class HandleSubs extends AsyncTask<String, Void, List<Video>> {
 
     private MainActivity mMainActivity;
+    private SwipeRefreshLayout swipeContainer;
 
-    public HandleSubs(MainActivity mMainActivity) {
+    public HandleSubs(MainActivity mMainActivity, SwipeRefreshLayout swipeContainer ) {
         this.mMainActivity=mMainActivity;
+        this.swipeContainer=swipeContainer;
     }
 
     private String processPageSubscriptionsAndChannelIds(JSONObject userInfo, ArrayList<String> listSubscribesIds, Map<String, Integer> listSubscribesIdsMap){
@@ -113,12 +116,6 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
     @Override
     protected List<Video> doInBackground(String... tokens) {
 
-        /*mMainActivity.runOnUiThread(new Runnable() {
-            public void run() {
-            mMainActivity.mProgress.setVisibility(View.VISIBLE);
-            }
-        });*/
-
         ArrayList<String> listSubscribesIds = new ArrayList<String>();
         Map<String, Integer> listSubscribesIdsMapNewActivityCount = new HashMap<String, Integer>();
         this.requestSubList(listSubscribesIds, listSubscribesIdsMapNewActivityCount, tokens);
@@ -173,6 +170,12 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         //mMainActivity.fab.setVisibility(View.VISIBLE);
         mMainActivity.getAdapter().getListVideos().addAll(listVideos);
         mMainActivity.getAdapter().notifyDataSetChanged();
+
+        mMainActivity.runOnUiThread(new Runnable() {
+            public void run() {
+                swipeContainer.setRefreshing(false);
+            }
+        });
 
         //manage the intent button
         mMainActivity.fab.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.getFullUrl()));

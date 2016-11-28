@@ -30,10 +30,12 @@ public class RecyclerListAdapter extends RecyclerView.Adapter<ItemViewHolder> {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.video, parent, false);
         return new ItemViewHolder(view);
     }
+
     @Override
     public void onBindViewHolder(ItemViewHolder holder, int position) {
         Video video = this.listVideos.get(position);
-        holder.getTextView().setText(video.getTitle()/*+"|"+video.getThumbnailsUrl()+"|"+video.getChannelTitle()*/);
+        holder.getTextView().setText(video.getTitle());
+        holder.getChannelTitle().setText(video.getChannelTitle());
         //holder.textView.setBackgroundColor(Color.CYAN);
 
         //Render image using Picasso library

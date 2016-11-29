@@ -62,6 +62,7 @@ https://material.google.com/components/lists.html
 http://stackoverflow.com/questions/5273436/how-to-get-activitys-content-view
 http://www.materialdoc.com/linear-progress/
 https://guides.codepath.com/android/Fragment-Navigation-Drawer#persistent-navigation-drawer
+https://guides.codepath.com/android/Implementing-Pull-to-Refresh-Guide#step-2-setup-swiperefreshlayout
 
  */
 public class MainActivity extends AppCompatActivity {
@@ -113,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         //this.mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService, this));
         this.mSignOut = (AppCompatButton) findViewById(R.id.signOut);
         //this.mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
-        this.mProgress = (ProgressBar) findViewById(R.id.progress_bar);
+        //this.mProgress = (ProgressBar) findViewById(R.id.progress_bar);
         /*this.mViewPager = (ViewPager) findViewById(R.id.view_pager);
         this.mTabLayout = (TabLayout) findViewById(R.id.tab_layout);
         this.mTabLayout.setupWithViewPager(mViewPager);*/
@@ -150,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
         fragmentManager = getSupportFragmentManager();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.add(R.id.flContent, vf, "A");
-        ft.add(R.id.flContent, vwf, "B");
         ft.hide(vwf);
         ft.commit();
     }
@@ -174,6 +174,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void selectDrawerItem(MenuItem menuItem) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        if (!vwf.isAdded()) { // if the fragment is already in container
+            ft.add(R.id.flContent, vwf, "B");
+        }
         switch(menuItem.getItemId()) {
             case R.id.nav_first_fragment:
                 ft.hide(vwf);

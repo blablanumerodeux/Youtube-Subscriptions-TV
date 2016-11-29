@@ -54,6 +54,7 @@ public class RecyclerListAdapter extends RecyclerView.Adapter<ItemViewHolder> {
     }
 
     public void clear() {
-        this.listVideos = new ArrayList<Video>();
+        this.listVideos.clear();
+        notifyDataSetChanged();
     }
 }

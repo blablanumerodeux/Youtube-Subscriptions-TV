@@ -72,6 +72,8 @@ public class VideoPageFragment extends Fragment {
                     @Override
                     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                         String directionString = (direction==ItemTouchHelper.LEFT)?"left":"right";
+                        if (adapter.getListVideos().isEmpty())
+                            return;
                         Video video = adapter.getListVideos().get(viewHolder.getAdapterPosition());
                         String idRemovedVideo = video.getIdYT();
                         String thumbnailsUrl = video.getThumbnailsUrl();

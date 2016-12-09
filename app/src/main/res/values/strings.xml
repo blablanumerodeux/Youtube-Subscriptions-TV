@@ -13,4 +13,7 @@
     <string name="clientId">623593049034-45pn8e8i4bv6gc0tim6qdp788ct6a128.apps.googleusercontent.com</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
+    <string name="mark_as_watched">Marquer la playlist comme vue</string>
+    <string name="watched">Vue</string>
+    <string name="cancel">Annuler</string>
 </resources>

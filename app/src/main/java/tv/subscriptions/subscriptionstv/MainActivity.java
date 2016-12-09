@@ -1,5 +1,6 @@
 package tv.subscriptions.subscriptionstv;
 
+import android.support.v4.app.DialogFragment;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -96,6 +97,8 @@ public class MainActivity extends AppCompatActivity {
     AuthorizationService authorizationService;
     // state
     AuthState mAuthState;
+    private boolean askForSetAsWatched;
+    private List<Video> playlist;
 
     Fragment vf;
     Fragment vwf;
@@ -115,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
         this.mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
         //this.mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService, this));
         this.mSignOut = (AppCompatButton) findViewById(R.id.signOut);
+        this.askForSetAsWatched = false;
         //this.mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
         //this.mProgress = (ProgressBar) findViewById(R.id.progress_bar);
         /*this.mViewPager = (ViewPager) findViewById(R.id.view_pager);
@@ -267,6 +271,15 @@ public class MainActivity extends AppCompatActivity {
         this.enablePostAuthorizationFlows();
 
         Log.i(LOG_TAG, "+ ON RESUME +");
+
+        if (askForSetAsWatched) {
+            // Create an instance of the dialog fragment and show it
+            DialogFragment dialog = new SetLastPlaylistAsWatchedDialogFragment();
+            dialog.show(getSupportFragmentManager(), "SetLastPlaylistAsWatchedDialogFragment");
+        }else{
+            askForSetAsWatched = true;
+        }
+
     }
 
     @Override
@@ -342,6 +355,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void setmPagerAdapter(MyPagerAdapter mPagerAdapter) {
         this.mPagerAdapter = mPagerAdapter;
+    }
+
+    public List<Video> getPlaylist() {
+        return playlist;
+    }
+
+    public void setPlaylist(List<Video> playlist) {
+        this.playlist = playlist;
     }
 
     /**

@@ -197,20 +197,24 @@ class CallIntentListener implements Button.OnClickListener {
     public void onClick(View view) {
 
         //We generate the titles list
-        ArrayList<String> listAllTitlesOfVideos = new ArrayList<String>();
+        ArrayList<String> listAllIdsOfVideos = new ArrayList<String>();
         for (Video v: mMainActivity.getAdapter().getListVideos())
-            listAllTitlesOfVideos.add(v.getIdYT());
+            listAllIdsOfVideos.add(v.getIdYT());
+
+        List<Video> list50FirstTitlesOfVideos = new ArrayList<Video>();
+        list50FirstTitlesOfVideos = mMainActivity.getAdapter().getListVideos().subList(0,50);
 
         // Merge video IDs
         Joiner stringJoiner = Joiner.on(',');
-        String url = stringJoiner.join(listAllTitlesOfVideos);
+        String url = stringJoiner.join(list50FirstTitlesOfVideos );
         Log.i(LOG_TAG, "Ultime list of videos : " + mMainActivity.getFullUrl());
+        mMainActivity.setPlaylist(list50FirstTitlesOfVideos);
 
         //the youtube player api doesn't work when we try to open multiple videos
         //Intent intent = YouTubeIntents.createPlayVideoIntent(mMainActivity, url);//"a4NT5iBFuZs");
         //mMainActivity.startActivity(intent);
 
-        //so we use the browser to generate a anonymous playlist and playit
+        //so we use the browser to generate a anonymous playlist and play it (youtube can create a 50 videos playlist max)
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse("http://www.youtube.com/watch_videos?video_ids=" + url));
         mMainActivity.startActivity(intent);

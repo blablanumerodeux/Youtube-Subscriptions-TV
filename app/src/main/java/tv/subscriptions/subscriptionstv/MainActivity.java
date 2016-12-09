@@ -62,6 +62,8 @@ https://material.google.com/components/lists.html
 http://stackoverflow.com/questions/5273436/how-to-get-activitys-content-view
 http://www.materialdoc.com/linear-progress/
 https://guides.codepath.com/android/Fragment-Navigation-Drawer#persistent-navigation-drawer
+https://github.com/codepath/android_guides/wiki/Creating-and-Using-Fragments
+http://stackoverflow.com/questions/14347588/show-hide-fragment-in-android
 https://guides.codepath.com/android/Implementing-Pull-to-Refresh-Guide#step-2-setup-swiperefreshlayout
 
  */
@@ -236,6 +238,11 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.signOut:
                     SignOutListener signOutListener = new SignOutListener(this);
                     signOutListener.onClick(findViewById(R.id.signOut));
+                    return true;
+                case R.id.emptyDbButton:
+                    this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
+                    this.mydatabase.execSQL("DROP TABLE T_VIDEO_PLAYED");
+                    this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
                     return true;
                 case R.id.action_settings:
                     return true;

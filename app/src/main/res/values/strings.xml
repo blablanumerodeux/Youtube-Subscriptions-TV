@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Subscriptions TV</string>
     <string name="action_settings">Paramètres</string>
+    <string name="empty_db">Vider la base de données</string>
     <string name="sign_in">Sign in</string>
     <string name="sign_out">Sign out</string>
     <string name="launch_playlist">Lancer la playlist</string>

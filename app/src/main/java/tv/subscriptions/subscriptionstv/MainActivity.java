@@ -46,6 +46,11 @@ import org.json.JSONException;
 import java.util.List;
 import java.util.Vector;
 
+import butterknife.BindInt;
+import butterknife.BindString;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /*
 help taken from here :
 
@@ -71,19 +76,13 @@ https://guides.codepath.com/android/Implementing-Pull-to-Refresh-Guide#step-2-se
 public class MainActivity extends AppCompatActivity {
 
     AppCompatButton mAuthorize;
-    AppCompatButton mMakeApiCall;
     AppCompatButton mSignOut;
-    AppCompatButton mLaunchPlaylist;
-    ProgressBar mProgress;
-    ViewPager mViewPager;
-    TabLayout mTabLayout;
-    Toolbar toolbar;
-    private DrawerLayout mDrawer;
-    private NavigationView nvDrawer;
+    @BindView(R.id.toolbar) Toolbar toolbar;
+    @BindView(R.id.drawer_layout) DrawerLayout mDrawer;
+    @BindView(R.id.nvView) NavigationView nvDrawer;
     ActionBarDrawerToggle drawerToggle;
     Menu mMenu;
     FloatingActionButton fab;
-
     private static final String SHARED_PREFERENCES_NAME = "Youtube Subs TV";
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
@@ -91,15 +90,14 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerListAdapter adapter;
     private MyPagerAdapter mPagerAdapter;
     private String fullUrl;
-    private String apiKey;
-    private int maxResultsPerPageYTAPI;
+    @BindString(R.string.api_key) String apiKey;
+    @BindInt(R.integer.maxResultsPerPageYTAPI) int maxResultsPerPageYTAPI;
     private SQLiteDatabase mydatabase;
     AuthorizationService authorizationService;
     // state
     AuthState mAuthState;
     private boolean askForSetAsWatched;
     private List<Video> playlist;
-
     Fragment vf;
     Fragment vwf;
     FragmentManager fragmentManager;
@@ -108,42 +106,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(LOG_TAG, "+ ON CREATE +");
-
         setContentView(R.layout.drawer_layout);
-
-        this.toolbar = (Toolbar) findViewById(R.id.toolbar);
+        ButterKnife.bind(this);
         setSupportActionBar(toolbar);
 
         this.authorizationService = new AuthorizationService(this);
         this.mAuthorize = (AppCompatButton) findViewById(R.id.authorize);
-        //this.mAuthorize.setOnClickListener(new AuthorizeListener(authorizationService, this));
         this.mSignOut = (AppCompatButton) findViewById(R.id.signOut);
         this.askForSetAsWatched = false;
-        //this.mLaunchPlaylist = (AppCompatButton) findViewById(R.id.launch_playlist);
-        //this.mProgress = (ProgressBar) findViewById(R.id.progress_bar);
-        /*this.mViewPager = (ViewPager) findViewById(R.id.view_pager);
-        this.mTabLayout = (TabLayout) findViewById(R.id.tab_layout);
-        this.mTabLayout.setupWithViewPager(mViewPager);*/
-
-        /*List<Fragment> fragments = new Vector();
-        fragments.add(Fragment.instantiate(this,VideoPageFragment.class.getName()));
-        fragments.add(Fragment.instantiate(this,VideoWatchedPageFragment.class.getName()));
-        this.mPagerAdapter = new MyPagerAdapter(super.getSupportFragmentManager(), fragments);
-        this.mViewPager.setAdapter(this.mPagerAdapter);
-        this.mTabLayout.getTabAt(0).setText(R.string.tab_videos);
-        this.mTabLayout.getTabAt(1).setText(R.string.tab_videos_watched);*/
-        //this.mTabLayout.getTabAt(1).select();
-
-        this.mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        this.nvDrawer = (NavigationView) findViewById(R.id.nvView);
         this.drawerToggle = setupDrawerToggle();
         this.mDrawer.addDrawerListener(drawerToggle);
         this.setupDrawerContent(nvDrawer);
-
-        this.apiKey = getString(R.string.api_key);
-
-        Resources res = getResources();
-        this.maxResultsPerPageYTAPI = res.getInteger(R.integer.maxResultsPerPageYTAPI);
 
         this.mydatabase = openOrCreateDatabase("Youtube Subscriptions TV Database",MODE_PRIVATE,null);
         //this.mydatabase.execSQL("DROP TABLE T_VIDEO_PLAYED");
@@ -198,15 +171,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         ft.commit();
-        /*try {
-            fragment = (Fragment) fragmentClass.newInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
-
-        // Insert the fragment by replacing any existing fragment
-        /*FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.flContent, fragment).commit();*/
 
         // Highlight the selected item has been done by NavigationView
         menuItem.setChecked(true);

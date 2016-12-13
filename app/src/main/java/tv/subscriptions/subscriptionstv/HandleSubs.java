@@ -1,7 +1,6 @@
 package tv.subscriptions.subscriptionstv;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
@@ -11,6 +10,8 @@ import android.view.View;
 import android.widget.Button;
 
 import com.google.api.client.util.Joiner;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -152,17 +153,28 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
             }
         });
 
+        /*
         //We fetch and remove the videos already played
         if (!mMainActivity.getMydatabase().isOpen())
             return;
+
         Cursor resultSet = mMainActivity.getMydatabase().rawQuery("Select * from T_VIDEO_PLAYED",null);
         ArrayList<Video> listPlayedVideos = new ArrayList<Video>();
         for(resultSet.moveToFirst(); !resultSet.isAfterLast(); resultSet.moveToNext()) {
             Video v = new Video();
             v.setIdYT(resultSet.getString(0));
             listPlayedVideos.add(v);
+        }*/
+        List<Video> listPlayedVideos = new ArrayList<Video>();
+        YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mMainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+        try {
+            Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
+            listPlayedVideos = youtubeSubscriptionsTVDao.queryForAll();
+            listVideos.removeAll(listPlayedVideos);
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+            return;
         }
-        listVideos.removeAll(listPlayedVideos);
 
         //Display the list
         //mMainActivity.mProgress.setProgress(100);

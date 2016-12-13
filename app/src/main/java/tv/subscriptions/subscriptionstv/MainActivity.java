@@ -33,6 +33,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.table.TableUtils;
+
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationRequest;
@@ -71,7 +75,8 @@ https://guides.codepath.com/android/Fragment-Navigation-Drawer#persistent-naviga
 https://github.com/codepath/android_guides/wiki/Creating-and-Using-Fragments
 http://stackoverflow.com/questions/14347588/show-hide-fragment-in-android
 https://guides.codepath.com/android/Implementing-Pull-to-Refresh-Guide#step-2-setup-swiperefreshlayout
-
+https://horaceheaven.com/android-ormlite-tutorial/
+http://ormlite.com/javadoc/ormlite-core/doc-files/ormlite_5.html#DAO-Methods
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -92,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
     private String fullUrl;
     @BindString(R.string.api_key) String apiKey;
     @BindInt(R.integer.maxResultsPerPageYTAPI) int maxResultsPerPageYTAPI;
-    private SQLiteDatabase mydatabase;
+    //private SQLiteDatabase mydatabase;
     AuthorizationService authorizationService;
     // state
     AuthState mAuthState;
@@ -118,9 +123,9 @@ public class MainActivity extends AppCompatActivity {
         this.mDrawer.addDrawerListener(drawerToggle);
         this.setupDrawerContent(nvDrawer);
 
-        this.mydatabase = openOrCreateDatabase("Youtube Subscriptions TV Database",MODE_PRIVATE,null);
+        //this.mydatabase = openOrCreateDatabase("YoutubeSubscriptionsTVDatabase.db",MODE_PRIVATE,null);
         //this.mydatabase.execSQL("DROP TABLE T_VIDEO_PLAYED");
-        this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
+        //this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
 
         //we restore the token that has been saved on the SharedPreferences
         this.enablePostAuthorizationFlows();
@@ -208,9 +213,13 @@ public class MainActivity extends AppCompatActivity {
                     signOutListener.onClick(findViewById(R.id.signOut));
                     return true;
                 case R.id.emptyDbButton:
-                    this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
+                    /*this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
                     this.mydatabase.execSQL("DROP TABLE T_VIDEO_PLAYED");
-                    this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
+                    this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");*/
+
+                    YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(this, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+                    youtubeSubscriptionsTVOpenDatabaseHelper.clearTable();
+
                     return true;
                 case R.id.action_settings:
                     return true;
@@ -262,8 +271,8 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         super.onDestroy();
         this.authorizationService.dispose();
-        if (mydatabase.isOpen())
-            mydatabase.close();
+        /*if (mydatabase.isOpen())
+            mydatabase.close();*/
         Log.i(LOG_TAG, "- ON DESTROY -");
     }
 
@@ -301,9 +310,9 @@ public class MainActivity extends AppCompatActivity {
         return maxResultsPerPageYTAPI;
     }
 
-    public SQLiteDatabase getMydatabase() {
+    /*public SQLiteDatabase getMydatabase() {
         return mydatabase;
-    }
+    }*/
 
     public RecyclerListAdapter getAdapter() {
         return adapter;

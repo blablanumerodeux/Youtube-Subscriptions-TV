@@ -9,11 +9,13 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
 
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationException;
@@ -82,7 +84,16 @@ public class VideoPageFragment extends Fragment {
                         Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
                         adapter.getListVideos().remove(viewHolder.getAdapterPosition());
                         adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                        mActivity.getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', '"+ TextUtils.htmlEncode(title)+"', '"+thumbnailsUrl+"', '"+TextUtils.htmlEncode(channelTitle)+"');");
+                        //mActivity.getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', '"+ TextUtils.htmlEncode(title)+"', '"+thumbnailsUrl+"', '"+TextUtils.htmlEncode(channelTitle)+"');");
+
+                        YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+                        try {
+                            Dao<Video, Long> youtubeSubscriptionsTVDao= youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
+                            youtubeSubscriptionsTVDao.create(video);
+                        } catch (java.sql.SQLException e) {
+                            e.printStackTrace();
+                            return;
+                        }
                     }
                 });
         mIth.attachToRecyclerView(recyclerView);

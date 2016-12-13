@@ -33,6 +33,8 @@ dependencies {
     compile 'net.openid:appauth:0.2.0'
     compile files('libs/YouTubeAndroidPlayerApi.jar')
     compile 'com.jakewharton:butterknife:8.4.0'
+    compile 'com.j256.ormlite:ormlite-core:4.48'
+    compile 'com.j256.ormlite:ormlite-android:4.48'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
 }
 

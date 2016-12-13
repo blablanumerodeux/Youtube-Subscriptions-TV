@@ -12,7 +12,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import static tv.subscriptions.subscriptionstv.MainActivity.LOG_TAG;
 
@@ -55,11 +61,22 @@ public class VideoWatchedPageFragment extends Fragment {
                     @Override
                     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                         String directionString = (direction==ItemTouchHelper.LEFT)?"left":"right";
-                        String idRemovedVideo = adapter.getListVideos().get(viewHolder.getAdapterPosition()).getIdYT();
+                        Video videoToRemove = adapter.getListVideos().get(viewHolder.getAdapterPosition());
+                        String idRemovedVideo = videoToRemove.getIdYT();
                         Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
                         adapter.getListVideos().remove(viewHolder.getAdapterPosition());
                         adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                        mMainActivity.getMydatabase().execSQL("DELETE FROM T_VIDEO_PLAYED WHERE VideoId='"+idRemovedVideo+"';");
+                        //mMainActivity.getMydatabase().execSQL("DELETE FROM T_VIDEO_PLAYED WHERE VideoId='"+idRemovedVideo+"';");
+
+                        YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mMainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+                        try {
+                            Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
+                            youtubeSubscriptionsTVDao.delete(videoToRemove);
+                        } catch (java.sql.SQLException e) {
+                            e.printStackTrace();
+                            return;
+                        }
+
                     }
                 });
         mIth.attachToRecyclerView(recyclerView);
@@ -73,9 +90,27 @@ public class VideoWatchedPageFragment extends Fragment {
                 swipeContainer.setRefreshing(true);
             }
         });
+
         //We fetch the videos already played
-        Cursor resultSet = mMainActivity.getMydatabase().rawQuery("Select * from T_VIDEO_PLAYED",null);
-        ArrayList<Video> listPlayedVideos = new ArrayList<Video>();
+        List<Video> listPlayedVideos = new ArrayList<Video>();
+        YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mMainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+        try {
+            Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
+            listPlayedVideos = youtubeSubscriptionsTVDao.queryForAll();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        //We sort the list
+        Collections.sort(listPlayedVideos, new Comparator<Video>(){
+            public int compare(Video video1, Video video2) {
+                return video2.getDatePublished().compareTo(video1.getDatePublished());
+            }
+        });
+
+
+        /*Cursor resultSet = mMainActivity.getMydatabase().rawQuery("Select * from T_VIDEO_PLAYED",null);
         for(resultSet.moveToFirst(); !resultSet.isAfterLast(); resultSet.moveToNext()) {
             Video v = new Video();
             try {
@@ -87,7 +122,7 @@ public class VideoWatchedPageFragment extends Fragment {
             }catch (Exception e){
                 Log.e(LOG_TAG, "An error occured while fetching the data.");
             }
-        }
+        }*/
         this.adapter.getListVideos().addAll(listPlayedVideos);
         this.adapter.notifyDataSetChanged();
         mMainActivity.runOnUiThread(new Runnable() {

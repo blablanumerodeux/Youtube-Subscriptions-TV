@@ -1,14 +1,42 @@
 package tv.subscriptions.subscriptionstv;
 
+
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
 import java.util.Date;
 
+@DatabaseTable(tableName = "T_VIDEO_PLAYED")
 public class Video {
 
+    @DatabaseField(generatedId = true)
+    private Long id;
+
+    @DatabaseField
     private Date datePublished;
+
+    @DatabaseField
     private String title;
+
+    @DatabaseField
     private String idYT;
+
+    @DatabaseField
     private String thumbnailsUrl;
+
+    @DatabaseField
     private String channelTitle;
+
+    public Video() {
+    }
+
+    public Video(Date datePublished, String title, String idYT, String thumbnailsUrl, String channelTitle) {
+        this.datePublished = datePublished;
+        this.title = title;
+        this.idYT = idYT;
+        this.thumbnailsUrl = thumbnailsUrl;
+        this.channelTitle = channelTitle;
+    }
 
     public Date getDatePublished() {
         return datePublished;

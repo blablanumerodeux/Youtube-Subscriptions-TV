@@ -8,8 +8,8 @@
         android:icon="@drawable/icone"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:versionCode="1"
-        android:versionName="alpha"
+        android:versionCode="@integer/versionNumber"
+        android:versionName="beta"
         android:theme="@style/AppTheme">
         <activity
             android:name="tv.subscriptions.subscriptionstv.MainActivity"

@@ -10,6 +10,9 @@ import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.widget.Toast;
 
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
+
 import java.util.List;
 
 public class SetLastPlaylistAsWatchedDialogFragment extends DialogFragment {
@@ -23,9 +26,18 @@ public class SetLastPlaylistAsWatchedDialogFragment extends DialogFragment {
                     public void onClick(DialogInterface dialog, int id) {
                         List<Video> playlist = ((MainActivity) getActivity()).getPlaylist();
                         if (playlist != null && !playlist.isEmpty()){
-                            for (Video video: playlist) {
-                                ((MainActivity) getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+video.getIdYT()+"', '"+ TextUtils.htmlEncode(video.getTitle())+"', '"+video.getThumbnailsUrl()+"', '"+TextUtils.htmlEncode(video.getChannelTitle())+"');");
+                            YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(((MainActivity) getActivity()), YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+                            try {
+                                Dao<Video, Long> youtubeSubscriptionsTVDao= youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
+                                for (Video video: playlist) {
+                                    youtubeSubscriptionsTVDao.create(video);
+                                    //((MainActivity) getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+video.getIdYT()+"', '"+ TextUtils.htmlEncode(video.getTitle())+"', '"+video.getThumbnailsUrl()+"', '"+TextUtils.htmlEncode(video.getChannelTitle())+"');");
+                                }
+                            } catch (java.sql.SQLException e) {
+                                e.printStackTrace();
+                                return;
                             }
+
                         }else{
                             Context context = getActivity().getApplicationContext();
                             CharSequence text = "La playlist est vide !";

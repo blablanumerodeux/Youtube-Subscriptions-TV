@@ -16,4 +16,5 @@
     <string name="mark_as_watched">Marquer la dernière playlist comme vue</string>
     <string name="watched">Vue</string>
     <string name="cancel">Annuler</string>
+    <string name="dbName">youtubeSubscriptionsTV.db</string>
 </resources>

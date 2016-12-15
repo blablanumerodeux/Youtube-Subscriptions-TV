@@ -38,9 +38,9 @@ public class VideoPageFragment extends Fragment {
         View view = inflater.inflate(R.layout.videos_page, container, false);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_videos);
         this.mActivity = (MainActivity) getActivity();
-        this.mActivity.setAdapter(new RecyclerListAdapter(mActivity.getBaseContext()));
+        this.mActivity.setAdapterVideoPage(new RecyclerListAdapter(mActivity.getBaseContext()));
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
-        this.adapter = this.mActivity.getAdapter();
+        this.adapter = this.mActivity.getAdapterVideoPage();
         recyclerView.setAdapter(this.adapter);
         swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -71,7 +71,7 @@ public class VideoPageFragment extends Fragment {
                         // move item in `fromPos` to `toPos` in adapter.
                         //final int fromPos = viewHolder.getAdapterPosition();
                         //final int toPos = target.getAdapterPosition();
-                        Log.i(LOG_TAG, "moving items is normaly disabled !!! ");
+                        Log.i(LOG_TAG, "moving items is disabled !!! ");
                         return true;// true if moved, false otherwise
                     }
 
@@ -86,8 +86,16 @@ public class VideoPageFragment extends Fragment {
                         String channelTitle = video.getChannelTitle();
                         String title = video.getTitle();
                         Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
+                        //removing the video from the adapter list
                         adapter.getListVideos().remove(viewHolder.getAdapterPosition());
+                        //and notify the view that the data has changed
                         adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                        //TODO Insert the video at it's right place (maybe use a sortedList ?)
+                        if (mActivity.getAdapterVideoWatchedPage()!=null) {
+                            mActivity.getAdapterVideoWatchedPage().getListVideos().add(0, video);
+                            mActivity.getAdapterVideoWatchedPage().notifyDataSetChanged();
+                        }
+
                         //mActivity.getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', '"+ TextUtils.htmlEncode(title)+"', '"+thumbnailsUrl+"', '"+TextUtils.htmlEncode(channelTitle)+"');");
 
                         YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
@@ -107,7 +115,7 @@ public class VideoPageFragment extends Fragment {
 
     public void fetchTimelineAsync(int page) {
         //adapter.clear();
-        mActivity.getAdapter().clear();
+        mActivity.getAdapterVideoPage().clear();
         this.loadVideos();
     }
 

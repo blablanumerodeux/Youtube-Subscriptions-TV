@@ -41,6 +41,7 @@ public class VideoWatchedPageFragment extends Fragment {
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_videos_watched);
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
         this.adapter = new RecyclerListAdapter(mMainActivity.getBaseContext());
+        this.mMainActivity.setAdapterVideoWatchedPage(this.adapter);
         recyclerView.setAdapter(this.adapter);
         swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -70,6 +71,11 @@ public class VideoWatchedPageFragment extends Fragment {
                         Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
                         adapter.getListVideos().remove(viewHolder.getAdapterPosition());
                         adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                        //TODO Insert the video at it's right place (maybe use a sortedList ?)
+                        if (mMainActivity.getAdapterVideoPage()!=null) {
+                            mMainActivity.getAdapterVideoPage().getListVideos().add(0, videoToRemove);
+                            mMainActivity.getAdapterVideoPage().notifyDataSetChanged();
+                        }
                         //mMainActivity.getMydatabase().execSQL("DELETE FROM T_VIDEO_PLAYED WHERE VideoId='"+idRemovedVideo+"';");
 
                         YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mMainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);

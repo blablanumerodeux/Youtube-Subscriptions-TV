@@ -1,5 +1,7 @@
 package tv.subscriptions.subscriptionstv;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.v4.app.DialogFragment;
 import android.app.PendingIntent;
@@ -83,7 +85,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String AUTH_STATE = "AUTH_STATE";
     private static final String USED_INTENT = "USED_INTENT";
     public static final String LOG_TAG = "Youtube Subs TV";
-    private RecyclerListAdapter adapter;
+    private RecyclerListAdapter adapterVideoPage;
+    private RecyclerListAdapter adapterVideoWatchedPage;
     private MyPagerAdapter mPagerAdapter;
     private String fullUrl;
     @BindString(R.string.api_key) String apiKey;
@@ -113,10 +116,6 @@ public class MainActivity extends AppCompatActivity {
         this.drawerToggle = setupDrawerToggle();
         this.mDrawer.addDrawerListener(drawerToggle);
         this.setupDrawerContent(nvDrawer);
-
-        //this.mydatabase = openOrCreateDatabase("YoutubeSubscriptionsTVDatabase.db",MODE_PRIVATE,null);
-        //this.mydatabase.execSQL("DROP TABLE T_VIDEO_PLAYED");
-        //this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
 
         //we restore the token that has been saved on the SharedPreferences
         this.enablePostAuthorizationFlows();
@@ -206,7 +205,10 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.emptyDbButton:
                     final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(this, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                     youtubeSubscriptionsTVOpenDatabaseHelper.clearTable();
-
+                    adapterVideoWatchedPage.getListVideos().clear();
+                    adapterVideoWatchedPage.notifyDataSetChanged();
+                    if (adapterVideoPage!=null)
+                        adapterVideoPage.notifyDataSetChanged();
                     return true;
                 case R.id.watchedAllButton:
                     final MainActivity mainActivity = this;
@@ -223,6 +225,9 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         protected void onPostExecute(Boolean aBoolean) {
                             super.onPostExecute(aBoolean);
+                            adapterVideoPage.notifyDataSetChanged();
+                            if (adapterVideoWatchedPage!=null)
+                                adapterVideoWatchedPage.notifyDataSetChanged();
                             if (videoPageFragment.isVisible())
                                 videoPageFragment.getSwipeContainer().setRefreshing(false);
                             if (videoWatchedPageFragment.isVisible())
@@ -234,9 +239,10 @@ public class MainActivity extends AppCompatActivity {
                             try {
                                 final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                                 Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
-                                for(Video video : adapter.getListVideos()){
+                                for(Video video : adapterVideoPage.getListVideos()){
                                     youtubeSubscriptionsTVDao.create(video);
                                 }
+                                adapterVideoPage.getListVideos().clear();
                             } catch (java.sql.SQLException e) {
                                 e.printStackTrace();
                             }
@@ -338,12 +344,20 @@ public class MainActivity extends AppCompatActivity {
         return mydatabase;
     }*/
 
-    public RecyclerListAdapter getAdapter() {
-        return adapter;
+    public RecyclerListAdapter getAdapterVideoPage() {
+        return adapterVideoPage;
     }
 
-    public void setAdapter(RecyclerListAdapter adapter) {
-        this.adapter = adapter;
+    public void setAdapterVideoPage(RecyclerListAdapter adapterVideoPage) {
+        this.adapterVideoPage = adapterVideoPage;
+    }
+
+    public RecyclerListAdapter getAdapterVideoWatchedPage() {
+        return adapterVideoWatchedPage;
+    }
+
+    public void setAdapterVideoWatchedPage(RecyclerListAdapter adapterVideoWatchedPage) {
+        this.adapterVideoWatchedPage = adapterVideoWatchedPage;
     }
 
     public MyPagerAdapter getmPagerAdapter() {

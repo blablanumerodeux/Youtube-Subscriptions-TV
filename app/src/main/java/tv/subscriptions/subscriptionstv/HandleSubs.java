@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.View;
@@ -77,6 +78,12 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
             return userInfo;
         } catch (IOException e) {
             e.printStackTrace();
+            mMainActivity.runOnUiThread(new Runnable() {
+                public void run() {
+                    Snackbar.make(mMainActivity.nvDrawer, "Verify your internet connection", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
+            });
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -180,8 +187,8 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         //mMainActivity.mProgress.setProgress(100);
         //mMainActivity.mProgress.setVisibility(View.GONE);
         //mMainActivity.fab.setVisibility(View.VISIBLE);
-        mMainActivity.getAdapter().getListVideos().addAll(listVideos);
-        mMainActivity.getAdapter().notifyDataSetChanged();
+        mMainActivity.getAdapterVideoPage().getListVideos().addAll(listVideos);
+        mMainActivity.getAdapterVideoPage().notifyDataSetChanged();
 
         mMainActivity.runOnUiThread(new Runnable() {
             public void run() {
@@ -210,11 +217,11 @@ class CallIntentListener implements Button.OnClickListener {
 
         //We generate the titles list
         ArrayList<String> listAllIdsOfVideos = new ArrayList<String>();
-        for (Video v: mMainActivity.getAdapter().getListVideos())
+        for (Video v: mMainActivity.getAdapterVideoPage().getListVideos())
             listAllIdsOfVideos.add(v.getIdYT());
 
         List<Video> list50FirstTitlesOfVideos = new ArrayList<Video>();
-        list50FirstTitlesOfVideos = mMainActivity.getAdapter().getListVideos().subList(0,50);
+        list50FirstTitlesOfVideos = mMainActivity.getAdapterVideoPage().getListVideos().subList(0,50);
 
         // Merge video IDs
         Joiner stringJoiner = Joiner.on(',');

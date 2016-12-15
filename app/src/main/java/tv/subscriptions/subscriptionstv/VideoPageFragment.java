@@ -28,6 +28,10 @@ public class VideoPageFragment extends Fragment {
     private MainActivity mActivity;
     private SwipeRefreshLayout swipeContainer;
 
+    public SwipeRefreshLayout getSwipeContainer() {
+        return swipeContainer;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

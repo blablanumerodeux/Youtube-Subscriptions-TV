@@ -28,6 +28,10 @@ public class VideoWatchedPageFragment extends Fragment {
     private SwipeRefreshLayout swipeContainer;
     private MainActivity mMainActivity;
 
+    public SwipeRefreshLayout getSwipeContainer() {
+        return swipeContainer;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

@@ -17,4 +17,5 @@
     <string name="watched">Vue</string>
     <string name="cancel">Annuler</string>
     <string name="dbName">youtubeSubscriptionsTV.db</string>
+    <string name="watchedAllButton">Tout marquer comme vue</string>
 </resources>

@@ -27,4 +27,10 @@
         android:title="@string/empty_db"
         android:visible="true"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/watchedAllButton"
+        android:orderInCategory="400"
+        android:title="@string/watchedAllButton"
+        android:visible="true"
+        app:showAsAction="never" />
 </menu>

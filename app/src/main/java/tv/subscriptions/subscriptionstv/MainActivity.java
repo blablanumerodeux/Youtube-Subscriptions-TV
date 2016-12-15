@@ -1,25 +1,19 @@
 package tv.subscriptions.subscriptionstv;
 
+import android.os.AsyncTask;
 import android.support.v4.app.DialogFragment;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -31,11 +25,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ProgressBar;
 
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.table.TableUtils;
 
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationException;
@@ -48,7 +40,6 @@ import net.openid.appauth.TokenResponse;
 import org.json.JSONException;
 
 import java.util.List;
-import java.util.Vector;
 
 import butterknife.BindInt;
 import butterknife.BindString;
@@ -103,8 +94,8 @@ public class MainActivity extends AppCompatActivity {
     AuthState mAuthState;
     private boolean askForSetAsWatched;
     private List<Video> playlist;
-    Fragment vf;
-    Fragment vwf;
+    VideoPageFragment videoPageFragment;
+    VideoWatchedPageFragment videoWatchedPageFragment;
     FragmentManager fragmentManager;
 
     @Override
@@ -130,12 +121,12 @@ public class MainActivity extends AppCompatActivity {
         //we restore the token that has been saved on the SharedPreferences
         this.enablePostAuthorizationFlows();
 
-        vf = new VideoPageFragment();
-        vwf = new VideoWatchedPageFragment();
+        videoPageFragment = new VideoPageFragment();
+        videoWatchedPageFragment = new VideoWatchedPageFragment();
         fragmentManager = getSupportFragmentManager();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.add(R.id.flContent, vf, "A");
-        ft.hide(vwf);
+        ft.add(R.id.flContent, videoPageFragment, "A");
+        ft.hide(videoWatchedPageFragment);
         ft.commit();
     }
 
@@ -158,21 +149,21 @@ public class MainActivity extends AppCompatActivity {
 
     public void selectDrawerItem(MenuItem menuItem) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        if (!vwf.isAdded()) { // if the fragment is already in container
-            ft.add(R.id.flContent, vwf, "B");
+        if (!videoWatchedPageFragment.isAdded()) { // if the fragment is already in container
+            ft.add(R.id.flContent, videoWatchedPageFragment, "B");
         }
         switch(menuItem.getItemId()) {
             case R.id.nav_first_fragment:
-                ft.hide(vwf);
-                ft.show(vf);
+                ft.hide(videoWatchedPageFragment);
+                ft.show(videoPageFragment);
                 break;
             case R.id.nav_third_fragment:
-                ft.hide(vf);
-                ft.show(vwf);
+                ft.hide(videoPageFragment);
+                ft.show(videoWatchedPageFragment);
                 break;
             default:
-                ft.hide(vwf);
-                ft.show(vf);
+                ft.hide(videoWatchedPageFragment);
+                ft.show(videoPageFragment);
                 break;
         }
         ft.commit();
@@ -213,13 +204,46 @@ public class MainActivity extends AppCompatActivity {
                     signOutListener.onClick(findViewById(R.id.signOut));
                     return true;
                 case R.id.emptyDbButton:
-                    /*this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");
-                    this.mydatabase.execSQL("DROP TABLE T_VIDEO_PLAYED");
-                    this.mydatabase.execSQL("CREATE TABLE IF NOT EXISTS T_VIDEO_PLAYED(VideoId VARCHAR, Title VARCHAR, ThumbnailsUrl VARCHAR, ChannelTitle VARCHAR);");*/
-
-                    YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(this, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+                    final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(this, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                     youtubeSubscriptionsTVOpenDatabaseHelper.clearTable();
 
+                    return true;
+                case R.id.watchedAllButton:
+                    final MainActivity mainActivity = this;
+                    AsyncTask<Void, Void, Boolean> thread = new AsyncTask<Void, Void, Boolean>(){
+                        @Override
+                        protected void onPreExecute() {
+                            super.onPreExecute();
+                            if (videoPageFragment.isVisible())
+                                videoPageFragment.getSwipeContainer().setRefreshing(true);
+                            if (videoWatchedPageFragment.isVisible())
+                                videoWatchedPageFragment.getSwipeContainer().setRefreshing(true);
+                        }
+
+                        @Override
+                        protected void onPostExecute(Boolean aBoolean) {
+                            super.onPostExecute(aBoolean);
+                            if (videoPageFragment.isVisible())
+                                videoPageFragment.getSwipeContainer().setRefreshing(false);
+                            if (videoWatchedPageFragment.isVisible())
+                                videoWatchedPageFragment.getSwipeContainer().setRefreshing(false);
+                        }
+
+                        @Override
+                        protected Boolean doInBackground(Void... voids) {
+                            try {
+                                final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+                                Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
+                                for(Video video : adapter.getListVideos()){
+                                    youtubeSubscriptionsTVDao.create(video);
+                                }
+                            } catch (java.sql.SQLException e) {
+                                e.printStackTrace();
+                            }
+                            return true;
+                        }
+                    };
+                    thread.execute();
                     return true;
                 case R.id.action_settings:
                     return true;

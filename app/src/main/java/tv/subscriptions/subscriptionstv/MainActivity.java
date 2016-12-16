@@ -204,6 +204,7 @@ public class MainActivity extends AppCompatActivity {
                     signOutListener.onClick(findViewById(R.id.signOut));
                     return true;
                 case R.id.emptyDbButton:
+                    adapterVideoPage.getListVideos().addAll(adapterVideoWatchedPage.getListVideos());
                     final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(this, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                     youtubeSubscriptionsTVOpenDatabaseHelper.clearTable();
                     adapterVideoWatchedPage.getListVideos().clear();

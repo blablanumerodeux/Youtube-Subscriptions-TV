@@ -1,6 +1,7 @@
 package tv.subscriptions.subscriptionstv;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
@@ -29,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import butterknife.BindInt;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -140,7 +142,6 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
                 //}
             }
             threadPool.shutdown();
-
             threadPool.awaitTermination(5, TimeUnit.MINUTES);
 
             return handleXML.getListVideos();
@@ -217,16 +218,32 @@ class CallIntentListener implements Button.OnClickListener {
 
         //We generate the titles list
         ArrayList<String> listAllIdsOfVideos = new ArrayList<String>();
-        for (Video v: mMainActivity.getAdapterVideoPage().getListVideos())
+        ArrayList<Video> listVideosInAdapter = mMainActivity.getAdapterVideoPage().getListVideos();
+        for (Video v: listVideosInAdapter)
             listAllIdsOfVideos.add(v.getIdYT());
 
         List<Video> list50FirstTitlesOfVideos = new ArrayList<Video>();
-        list50FirstTitlesOfVideos = mMainActivity.getAdapterVideoPage().getListVideos().subList(0,50);
+        Resources res = mMainActivity.getResources();
+        int maxResultsPerPageYTAPI = res.getInteger(R.integer.maxResultsPerPageYTAPI);
+
+        if (listVideosInAdapter == null || listVideosInAdapter.size()==0) {
+            mMainActivity.runOnUiThread(new Runnable() {
+                public void run() {
+                    Snackbar.make(mMainActivity.nvDrawer, mMainActivity.getString(R.string.err_empty_playlist), Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
+            });
+            return;
+        }
+
+        if (listVideosInAdapter.size()<maxResultsPerPageYTAPI)
+            list50FirstTitlesOfVideos = listVideosInAdapter.subList(0,listVideosInAdapter.size());
+        else
+            list50FirstTitlesOfVideos = listVideosInAdapter.subList(0,maxResultsPerPageYTAPI);
 
         // Merge video IDs
         Joiner stringJoiner = Joiner.on(',');
         String url = stringJoiner.join(list50FirstTitlesOfVideos );
-        Log.i(LOG_TAG, "Ultime list of videos : " + mMainActivity.getFullUrl());
         mMainActivity.setPlaylist(list50FirstTitlesOfVideos);
 
         //the youtube player api doesn't work when we try to open multiple videos
@@ -235,7 +252,8 @@ class CallIntentListener implements Button.OnClickListener {
 
         //so we use the browser to generate a anonymous playlist and play it (youtube can create a 50 videos playlist max)
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse("http://www.youtube.com/watch_videos?video_ids=" + url));
+        intent.setData(Uri.parse(mMainActivity.getString(R.string.url_intent)+ url));// +",a4NT5iBFuZs"
+        Log.i(LOG_TAG, "URL Intent "+ intent.getDataString());
         mMainActivity.startActivity(intent);
 
     }

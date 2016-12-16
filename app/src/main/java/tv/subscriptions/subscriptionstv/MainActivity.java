@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         fragmentManager = getSupportFragmentManager();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.add(R.id.flContent, videoPageFragment, "A");
+        ft.add(R.id.flContent, videoWatchedPageFragment, "B");
         ft.hide(videoWatchedPageFragment);
         ft.commit();
     }

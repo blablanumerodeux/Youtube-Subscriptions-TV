@@ -18,4 +18,7 @@
     <string name="cancel">Annuler</string>
     <string name="dbName">youtubeSubscriptionsTV.db</string>
     <string name="watchedAllButton">Tout marquer comme vue</string>
+    <string name="url_intent">http://www.youtube.com/watch_videos?video_ids=</string>
+
+    <string name="err_empty_playlist">Playlist vide</string>
 </resources>

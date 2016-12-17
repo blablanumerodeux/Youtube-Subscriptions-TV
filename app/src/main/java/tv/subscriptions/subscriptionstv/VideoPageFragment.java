@@ -135,6 +135,12 @@ public class VideoPageFragment extends Fragment {
                     handleSubs.execute(accessToken);
                 }
             });
+        }else {
+            mActivity.runOnUiThread(new Runnable() {
+                public void run() {
+                    swipeContainer.setRefreshing(false);
+                }
+            });
         }
     }
 

@@ -237,9 +237,9 @@ class CallIntentListener implements Button.OnClickListener {
         }
 
         if (listVideosInAdapter.size()<maxResultsPerPageYTAPI)
-            list50FirstTitlesOfVideos = listVideosInAdapter.subList(0,listVideosInAdapter.size());
+            list50FirstTitlesOfVideos = new ArrayList<Video>(listVideosInAdapter.subList(0,listVideosInAdapter.size()));
         else
-            list50FirstTitlesOfVideos = listVideosInAdapter.subList(0,maxResultsPerPageYTAPI);
+            list50FirstTitlesOfVideos = new ArrayList<Video>(listVideosInAdapter.subList(0,maxResultsPerPageYTAPI));
 
         // Merge video IDs
         Joiner stringJoiner = Joiner.on(',');

@@ -24,20 +24,26 @@ public class SetLastPlaylistAsWatchedDialogFragment extends DialogFragment {
         builder.setMessage(R.string.mark_as_watched)
                 .setPositiveButton(R.string.watched, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        List<Video> playlist = ((MainActivity) getActivity()).getPlaylist();
+                        MainActivity mainActivity = (MainActivity) getActivity();
+                        List<Video> playlist = mainActivity.getPlaylist();
                         if (playlist != null && !playlist.isEmpty()){
-                            YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(((MainActivity) getActivity()), YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+                            YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                             try {
                                 Dao<Video, Long> youtubeSubscriptionsTVDao= youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
                                 for (Video video: playlist) {
                                     youtubeSubscriptionsTVDao.create(video);
                                     //((MainActivity) getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+video.getIdYT()+"', '"+ TextUtils.htmlEncode(video.getTitle())+"', '"+video.getThumbnailsUrl()+"', '"+TextUtils.htmlEncode(video.getChannelTitle())+"');");
                                 }
+                                mainActivity.getAdapterVideoPage().getListVideos().removeAll(playlist);
+                                mainActivity.getAdapterVideoWatchedPage().getListVideos().addAll(playlist);
+                                mainActivity.getAdapterVideoPage().notifyDataSetChanged();
+                                if (mainActivity.getAdapterVideoWatchedPage()!=null)
+                                    mainActivity.getAdapterVideoWatchedPage().notifyDataSetChanged();
                             } catch (java.sql.SQLException e) {
                                 e.printStackTrace();
                                 return;
                             }
-
+                            
                         }else{
                             Context context = getActivity().getApplicationContext();
                             CharSequence text = "La playlist est vide !";

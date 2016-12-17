@@ -31,6 +31,9 @@ public class SetLastPlaylistAsWatchedDialogFragment extends DialogFragment {
                             try {
                                 Dao<Video, Long> youtubeSubscriptionsTVDao= youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
                                 for (Video video: playlist) {
+                                    //if the video already exist in the DB so we do not insert it again.
+                                    if (youtubeSubscriptionsTVDao.queryBuilder().where().eq("idYT", video.getIdYT()).countOf() > 0)
+                                        continue;
                                     youtubeSubscriptionsTVDao.create(video);
                                     //((MainActivity) getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+video.getIdYT()+"', '"+ TextUtils.htmlEncode(video.getTitle())+"', '"+video.getThumbnailsUrl()+"', '"+TextUtils.htmlEncode(video.getChannelTitle())+"');");
                                 }
@@ -43,7 +46,6 @@ public class SetLastPlaylistAsWatchedDialogFragment extends DialogFragment {
                                 e.printStackTrace();
                                 return;
                             }
-                            
                         }else{
                             Context context = getActivity().getApplicationContext();
                             CharSequence text = "La playlist est vide !";

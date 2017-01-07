@@ -1,4 +1,4 @@
 <resources>
     <integer name="maxResultsPerPageYTAPI">50</integer>
-    <integer name="versionNumber">4</integer>
+    <integer name="versionNumber">5</integer>
 </resources>

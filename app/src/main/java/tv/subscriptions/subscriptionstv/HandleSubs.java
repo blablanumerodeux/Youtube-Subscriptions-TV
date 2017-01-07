@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -189,6 +190,17 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         //mMainActivity.mProgress.setVisibility(View.GONE);
         //mMainActivity.fab.setVisibility(View.VISIBLE);
         mMainActivity.getAdapterVideoPage().getListVideos().addAll(listVideos);
+
+        try {
+            Dao<UnplayedVideo, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getUnplayedDao();
+            for (Video video: listVideos) {
+                UnplayedVideo unplayedVideo = new UnplayedVideo(video);
+                youtubeSubscriptionsTVDao.create(unplayedVideo);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         mMainActivity.getAdapterVideoPage().notifyDataSetChanged();
 
         mMainActivity.runOnUiThread(new Runnable() {

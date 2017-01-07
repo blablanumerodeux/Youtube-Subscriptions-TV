@@ -17,12 +17,13 @@ import butterknife.BindString;
 public class YoutubeSubscriptionsTVOpenDatabaseHelper extends OrmLiteSqliteOpenHelper {
 
     private static final String DATABASE_NAME = "youtubeSubscriptionsTV.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     /**
      * The data access object used to interact with the Sqlite database to do C.R.U.D operations.
      */
     private Dao<Video, Long> youtubeSubscriptionsTVDao;
+    private Dao<UnplayedVideo, Long> youtubeSubscriptionsTVUnplayedDao;
 
 
     public YoutubeSubscriptionsTVOpenDatabaseHelper(Context context) {
@@ -41,6 +42,7 @@ public class YoutubeSubscriptionsTVOpenDatabaseHelper extends OrmLiteSqliteOpenH
              * creates the Video database table
              */
             TableUtils.createTable(connectionSource, Video.class);
+            TableUtils.createTable(connectionSource, UnplayedVideo.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -54,6 +56,7 @@ public class YoutubeSubscriptionsTVOpenDatabaseHelper extends OrmLiteSqliteOpenH
  * Recreates the database when onUpgrade is called by the framework
  */
             TableUtils.dropTable(connectionSource, Video.class, false);
+            TableUtils.dropTable(connectionSource, UnplayedVideo.class, false);
             onCreate(database, connectionSource);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -72,6 +75,18 @@ public class YoutubeSubscriptionsTVOpenDatabaseHelper extends OrmLiteSqliteOpenH
         return youtubeSubscriptionsTVDao;
     }
 
+    /**
+     * Returns an instance of the data access object
+     * @return
+     * @throws SQLException
+     */
+    public Dao<UnplayedVideo, Long> getUnplayedDao() throws SQLException {
+        if(youtubeSubscriptionsTVUnplayedDao == null) {
+            youtubeSubscriptionsTVUnplayedDao = getDao(UnplayedVideo.class);
+        }
+        return youtubeSubscriptionsTVUnplayedDao;
+    }
+
     /*
     Clear the table
      */
@@ -87,4 +102,19 @@ public class YoutubeSubscriptionsTVOpenDatabaseHelper extends OrmLiteSqliteOpenH
         }
     }
 
+
+    /*
+    Clear the table
+     */
+    public void clearUnplayedVideoTable() {
+        try {
+            /**
+             * Recreates the database
+             */
+            TableUtils.dropTable(connectionSource, UnplayedVideo.class, false);
+            TableUtils.createTable(connectionSource, UnplayedVideo.class);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

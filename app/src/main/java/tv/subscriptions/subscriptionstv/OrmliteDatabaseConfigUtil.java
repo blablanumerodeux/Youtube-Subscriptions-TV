@@ -16,7 +16,7 @@ public class OrmliteDatabaseConfigUtil extends OrmLiteConfigUtil {
     /**
      * classes represents the models to use for generating the ormlite_config.txt file
      */
-    private static final Class<?>[] classes = new Class[] {Video.class};
+    private static final Class<?>[] classes = new Class[] {Video.class, UnplayedVideo.class};
     /**
      * Given that this is a separate program from the android app, we have to use
      * a static main java method to create the configuration file.

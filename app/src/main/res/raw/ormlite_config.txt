@@ -1,9 +1,35 @@
 #
-# generated on 2016/12/13 11:28:16
+# generated on 2017/01/07 04:02:13
 #
 # --table-start--
 dataClass=tv.subscriptions.subscriptionstv.Video
 tableName=T_VIDEO_PLAYED
+# --table-fields-start--
+# --field-start--
+fieldName=id
+generatedId=true
+# --field-end--
+# --field-start--
+fieldName=datePublished
+# --field-end--
+# --field-start--
+fieldName=title
+# --field-end--
+# --field-start--
+fieldName=idYT
+# --field-end--
+# --field-start--
+fieldName=thumbnailsUrl
+# --field-end--
+# --field-start--
+fieldName=channelTitle
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=tv.subscriptions.subscriptionstv.UnplayedVideo
+tableName=T_VIDEO_UNPLAYED
 # --table-fields-start--
 # --field-start--
 fieldName=id

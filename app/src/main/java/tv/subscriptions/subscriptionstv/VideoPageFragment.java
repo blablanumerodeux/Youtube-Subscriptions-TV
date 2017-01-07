@@ -20,6 +20,11 @@ import com.j256.ormlite.dao.Dao;
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationException;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import static tv.subscriptions.subscriptionstv.MainActivity.LOG_TAG;
 
 public class VideoPageFragment extends Fragment {
@@ -109,18 +114,49 @@ public class VideoPageFragment extends Fragment {
                     }
                 });
         mIth.attachToRecyclerView(recyclerView);
-        this.loadVideos();
+        //this.loadVideos();
+
+        //We fetch the unplayed videos
+        List<UnplayedVideo> listUnplayedVideos = new ArrayList<UnplayedVideo>();
+        List<Video> listVideos = new ArrayList<Video>();
+        YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+        try {
+            Dao<UnplayedVideo, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getUnplayedDao();
+            listUnplayedVideos = youtubeSubscriptionsTVDao.queryForAll();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+
+        //We sort the list
+        Collections.sort(listUnplayedVideos, new Comparator<UnplayedVideo>(){
+            public int compare(UnplayedVideo video1, UnplayedVideo video2) {
+                return video2.getDatePublished().compareTo(video1.getDatePublished());
+            }
+        });
+
+        for (UnplayedVideo unplayedVideos : listUnplayedVideos) {
+            listVideos.add(new Video(unplayedVideos));
+        }
+        mActivity.getAdapterVideoPage().getListVideos().addAll(listVideos);
+        mActivity.getAdapterVideoPage().notifyDataSetChanged();
+        mActivity.fab.setOnClickListener(new CallIntentListener(mActivity, mActivity.getFullUrl()));
+
         return view;
     }
 
     public void fetchTimelineAsync(int page) {
+        //we clean the unplayed video table and the adapter
         //adapter.clear();
+        final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+        youtubeSubscriptionsTVOpenDatabaseHelper.clearUnplayedVideoTable();
         mActivity.getAdapterVideoPage().clear();
+        mActivity.getAdapterVideoPage().notifyDataSetChanged();
         this.loadVideos();
     }
 
     public void loadVideos() {
         if (mActivity.mAuthState != null && mActivity.mAuthState.isAuthorized()) {
+
             //we load the videos
             final HandleSubs handleSubs = new HandleSubs(mActivity,swipeContainer);
             mActivity.mAuthState.performActionWithFreshTokens(mActivity.authorizationService, new AuthState.AuthStateAction() {

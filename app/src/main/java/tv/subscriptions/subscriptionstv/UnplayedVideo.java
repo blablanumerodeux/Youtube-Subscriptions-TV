@@ -1,13 +1,12 @@
 package tv.subscriptions.subscriptionstv;
 
-
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 import java.util.Date;
 
-@DatabaseTable(tableName = "T_VIDEO_PLAYED")
-public class Video {
+@DatabaseTable(tableName = "T_VIDEO_UNPLAYED")
+public class UnplayedVideo {
 
     @DatabaseField(generatedId = true)
     private Long id;
@@ -27,10 +26,10 @@ public class Video {
     @DatabaseField
     private String channelTitle;
 
-    public Video() {
+    public UnplayedVideo() {
     }
 
-    public Video(Date datePublished, String title, String idYT, String thumbnailsUrl, String channelTitle) {
+    public UnplayedVideo(Date datePublished, String title, String idYT, String thumbnailsUrl, String channelTitle) {
         this.datePublished = datePublished;
         this.title = title;
         this.idYT = idYT;
@@ -38,12 +37,12 @@ public class Video {
         this.channelTitle = channelTitle;
     }
 
-    public Video(UnplayedVideo unplayedVideo) {
-        this.datePublished = unplayedVideo.getDatePublished();
-        this.title = unplayedVideo.getTitle();
-        this.idYT = unplayedVideo.getIdYT();
-        this.thumbnailsUrl = unplayedVideo.getThumbnailsUrl();
-        this.channelTitle = unplayedVideo.getChannelTitle();
+    public UnplayedVideo(Video video) {
+        this.datePublished = video.getDatePublished();
+        this.title = video.getTitle();
+        this.idYT = video.getIdYT();
+        this.thumbnailsUrl = video.getThumbnailsUrl();
+        this.channelTitle = video.getChannelTitle();
     }
 
     public Date getDatePublished() {
@@ -96,7 +95,7 @@ public class Video {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Video video = (Video) o;
+        UnplayedVideo video = (UnplayedVideo) o;
 
         return idYT.equals(video.idYT);
     }

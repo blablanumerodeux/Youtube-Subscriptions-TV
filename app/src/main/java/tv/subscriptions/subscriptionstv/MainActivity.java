@@ -47,6 +47,7 @@ import butterknife.BindInt;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import tv.subscriptions.services.PlayedVideosService;
 
 /*
 help taken from here :
@@ -238,16 +239,21 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         protected Boolean doInBackground(Void... voids) {
-                            try {
-                                final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+                            /*try {*/
+                                //TODO INJECT THIS IF POSSIBLE
+                                PlayedVideosService playedVideosService = new PlayedVideosService(mainActivity);
+                                //TODO MIGRATE TO SERVICES WHEN POSSIBLE (LIKE HERE) !
+                                playedVideosService.markAllAsWatched(adapterVideoPage.getListVideos());
+
+                                /*final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                                 Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
                                 for(Video video : adapterVideoPage.getListVideos()){
                                     youtubeSubscriptionsTVDao.create(video);
-                                }
+                                }*/
                                 adapterVideoPage.getListVideos().clear();
-                            } catch (java.sql.SQLException e) {
+                            /*} catch (java.sql.SQLException e) {
                                 e.printStackTrace();
-                            }
+                            }*/
                             return true;
                         }
                     };

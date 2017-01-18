@@ -127,6 +127,7 @@ public class VideoPageFragment extends Fragment {
             e.printStackTrace();
         }
 
+
         //We sort the list
         Collections.sort(listUnplayedVideos, new Comparator<UnplayedVideo>(){
             public int compare(UnplayedVideo video1, UnplayedVideo video2) {
@@ -137,6 +138,17 @@ public class VideoPageFragment extends Fragment {
         for (UnplayedVideo unplayedVideos : listUnplayedVideos) {
             listVideos.add(new Video(unplayedVideos));
         }
+
+        //We fetch and remove the played videos
+        List<Video> listPlayedVideos = new ArrayList<Video>();
+        try {
+            Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
+            listPlayedVideos = youtubeSubscriptionsTVDao.queryForAll();
+            listVideos.removeAll(listPlayedVideos);
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+
         mActivity.getAdapterVideoPage().getListVideos().addAll(listVideos);
         mActivity.getAdapterVideoPage().notifyDataSetChanged();
         mActivity.fab.setOnClickListener(new CallIntentListener(mActivity, mActivity.getFullUrl()));

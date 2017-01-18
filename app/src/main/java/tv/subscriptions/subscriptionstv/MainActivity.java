@@ -277,7 +277,8 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i(LOG_TAG, "+ ON RESUME +");
 
-        if (askForSetAsWatched) {
+        List<Video> playlist = this.getPlaylist();
+        if (askForSetAsWatched && playlist != null && !playlist.isEmpty()){
             // Create an instance of the dialog fragment and show it
             DialogFragment dialog = new SetLastPlaylistAsWatchedDialogFragment();
             dialog.show(getSupportFragmentManager(), "SetLastPlaylistAsWatchedDialogFragment");

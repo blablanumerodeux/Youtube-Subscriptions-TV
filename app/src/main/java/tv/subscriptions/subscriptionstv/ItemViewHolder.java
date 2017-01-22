@@ -10,6 +10,7 @@ class ItemViewHolder extends RecyclerView.ViewHolder {
     protected ImageView imageView;
     protected TextView textView;
     protected TextView channelTitleView;
+    protected TextView dateView;
 
     public ItemViewHolder(View itemView) {
 
@@ -17,6 +18,7 @@ class ItemViewHolder extends RecyclerView.ViewHolder {
         this.imageView = (ImageView) itemView.findViewById(R.id.thumbnail);
         this.textView = (TextView) itemView.findViewById(R.id.title);
         this.channelTitleView = (TextView) itemView.findViewById(R.id.channelTitle);
+        this.dateView = (TextView) itemView.findViewById(R.id.date);
     }
 
     public ImageView getImageView() {
@@ -41,5 +43,13 @@ class ItemViewHolder extends RecyclerView.ViewHolder {
 
     public void setChannelTitle(TextView channelTitle) {
         this.channelTitleView = channelTitle;
+    }
+
+    public TextView getDateView() {
+        return dateView;
+    }
+
+    public void setDateView(TextView dateView) {
+        this.dateView = dateView;
     }
 }

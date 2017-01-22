@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.squareup.picasso.Picasso;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 
@@ -49,6 +50,9 @@ public class RecyclerListAdapter extends RecyclerView.Adapter<ItemViewHolder> {
         Video video = this.listVideosDisplayed.get(position);
         holder.getTextView().setText(video.getTitle());
         holder.getChannelTitle().setText(video.getChannelTitle());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        String dateString = sdf.format(video.getDatePublished());
+        holder.getDateView().setText(dateString);
         //holder.textView.setBackgroundColor(Color.CYAN);
 
         //Render image using Picasso library

@@ -37,8 +37,8 @@ public class SetLastPlaylistAsWatchedDialogFragment extends DialogFragment {
                                     youtubeSubscriptionsTVDao.create(video);
                                     //((MainActivity) getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+video.getIdYT()+"', '"+ TextUtils.htmlEncode(video.getTitle())+"', '"+video.getThumbnailsUrl()+"', '"+TextUtils.htmlEncode(video.getChannelTitle())+"');");
                                 }
-                                mainActivity.getAdapterVideoPage().getListVideos().removeAll(playlist);
-                                mainActivity.getAdapterVideoWatchedPage().getListVideos().addAll(playlist);
+                                mainActivity.getAdapterVideoPage().getListVideosDisplayed().removeAll(playlist);
+                                mainActivity.getAdapterVideoWatchedPage().getListVideos().addAll(0, playlist);
                                 mainActivity.getAdapterVideoPage().notifyDataSetChanged();
                                 if (mainActivity.getAdapterVideoWatchedPage()!=null)
                                     mainActivity.getAdapterVideoWatchedPage().notifyDataSetChanged();

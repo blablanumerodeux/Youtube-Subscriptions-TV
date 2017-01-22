@@ -1,4 +1,5 @@
 <resources>
     <integer name="maxResultsPerPageYTAPI">50</integer>
-    <integer name="versionNumber">5</integer>
+    <integer name="numberOfPagesFetchedInDebugMode">2</integer><!--min 2-->
+    <integer name="versionNumber">6</integer>
 </resources>

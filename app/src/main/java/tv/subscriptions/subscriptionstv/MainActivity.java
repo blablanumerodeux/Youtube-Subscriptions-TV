@@ -71,6 +71,8 @@ http://stackoverflow.com/questions/14347588/show-hide-fragment-in-android
 https://guides.codepath.com/android/Implementing-Pull-to-Refresh-Guide#step-2-setup-swiperefreshlayout
 https://horaceheaven.com/android-ormlite-tutorial/
 http://ormlite.com/javadoc/ormlite-core/doc-files/ormlite_5.html#DAO-Methods
+https://guides.codepath.com/android/Endless-Scrolling-with-AdapterViews-and-RecyclerView#resetting-the-endless-scroll-state
+http://stackoverflow.com/questions/14678593/the-application-may-be-doing-too-much-work-on-its-main-thread
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -205,13 +207,14 @@ public class MainActivity extends AppCompatActivity {
                     signOutListener.onClick(findViewById(R.id.signOut));
                     return true;
                 case R.id.emptyDbButton:
-                    adapterVideoPage.getListVideos().addAll(adapterVideoWatchedPage.getListVideos());
+                    adapterVideoPage.getListVideosDisplayed().addAll(adapterVideoWatchedPage.getListVideos());
                     final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(this, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                     youtubeSubscriptionsTVOpenDatabaseHelper.clearTable();
                     adapterVideoWatchedPage.getListVideos().clear();
                     adapterVideoWatchedPage.notifyDataSetChanged();
-                    if (adapterVideoPage!=null)
+                    if (adapterVideoPage != null){
                         adapterVideoPage.notifyDataSetChanged();
+                    }
                     return true;
                 case R.id.watchedAllButton:
                     final MainActivity mainActivity = this;
@@ -239,21 +242,17 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         protected Boolean doInBackground(Void... voids) {
-                            /*try {*/
-                                //TODO INJECT THIS IF POSSIBLE
-                                PlayedVideosService playedVideosService = new PlayedVideosService(mainActivity);
-                                //TODO MIGRATE TO SERVICES WHEN POSSIBLE (LIKE HERE) !
-                                playedVideosService.markAllAsWatched(adapterVideoPage.getListVideos());
+                            //TODO INJECT THIS IF POSSIBLE
+                            PlayedVideosService playedVideosService = new PlayedVideosService(mainActivity);
+                            //TODO MIGRATE TO SERVICES WHEN POSSIBLE (LIKE HERE) !
+                            playedVideosService.markAllAsWatched(adapterVideoPage.getListVideosDisplayed());
+                            playedVideosService.markAllAsWatched(adapterVideoPage.getListVideos());
+                            mainActivity.getAdapterVideoWatchedPage().getListVideos().addAll(0, adapterVideoPage.getListVideos());
+                            mainActivity.getAdapterVideoWatchedPage().getListVideos().addAll(0, adapterVideoPage.getListVideosDisplayed());
 
-                                /*final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
-                                Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
-                                for(Video video : adapterVideoPage.getListVideos()){
-                                    youtubeSubscriptionsTVDao.create(video);
-                                }*/
-                                adapterVideoPage.getListVideos().clear();
-                            /*} catch (java.sql.SQLException e) {
-                                e.printStackTrace();
-                            }*/
+                            adapterVideoPage.getListVideosDisplayed().clear();
+                            //Reset endless scroll listener when performing a new search
+                            //videoPageFragment.getScrollListener().resetState();
                             return true;
                         }
                     };

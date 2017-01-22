@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import tv.subscriptions.services.UnplayedVideosService;
+
 import static tv.subscriptions.subscriptionstv.MainActivity.LOG_TAG;
 
 public class VideoPageFragment extends Fragment {
@@ -32,21 +34,40 @@ public class VideoPageFragment extends Fragment {
     private RecyclerListAdapter adapter;
     private MainActivity mActivity;
     private SwipeRefreshLayout swipeContainer;
+    private View view;
+    // Store a member variable for the listener
+    private EndlessRecyclerViewScrollListener scrollListener;
 
     public SwipeRefreshLayout getSwipeContainer() {
         return swipeContainer;
     }
 
+    public EndlessRecyclerViewScrollListener getScrollListener() {
+        return scrollListener;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.videos_page, container, false);
+        this.view = inflater.inflate(R.layout.videos_page, container, false);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_videos);
         this.mActivity = (MainActivity) getActivity();
         this.mActivity.setAdapterVideoPage(new RecyclerListAdapter(mActivity.getBaseContext()));
-        recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this.getContext());
+        recyclerView.setLayoutManager(linearLayoutManager);
         this.adapter = this.mActivity.getAdapterVideoPage();
         recyclerView.setAdapter(this.adapter);
+        // Retain an instance so that you can call `resetState()` for fresh searches
+        this.scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                // Triggered only when new data needs to be appended to the list
+                // Add whatever code is needed to append new items to the bottom of the list
+                loadNextDataFromApi(page);
+            }
+        };
+        // Adds the scroll listener to RecyclerView
+        recyclerView.addOnScrollListener(scrollListener);
         swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -63,6 +84,7 @@ public class VideoPageFragment extends Fragment {
         mActivity.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //TODO PUT THIS IN THE PROP
                 Snackbar.make(view, "You need to sign in to launch the playlist", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -83,21 +105,21 @@ public class VideoPageFragment extends Fragment {
                     @Override
                     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                         String directionString = (direction==ItemTouchHelper.LEFT)?"left":"right";
-                        if (adapter.getListVideos().isEmpty())
+                        if (adapter.getListVideosDisplayed().isEmpty())
                             return;
-                        Video video = adapter.getListVideos().get(viewHolder.getAdapterPosition());
+                        Video video = adapter.getListVideosDisplayed().get(viewHolder.getAdapterPosition());
                         String idRemovedVideo = video.getIdYT();
                         String thumbnailsUrl = video.getThumbnailsUrl();
                         String channelTitle = video.getChannelTitle();
                         String title = video.getTitle();
                         Log.i(LOG_TAG, "removed video untitled : "+idRemovedVideo);
                         //removing the video from the adapter list
-                        adapter.getListVideos().remove(viewHolder.getAdapterPosition());
+                        adapter.getListVideosDisplayed().remove(viewHolder.getAdapterPosition());
                         //and notify the view that the data has changed
                         adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
                         //TODO Insert the video at it's right place (maybe use a sortedList ?)
                         if (mActivity.getAdapterVideoWatchedPage()!=null) {
-                            mActivity.getAdapterVideoWatchedPage().getListVideos().add(0, video);
+                            mActivity.getAdapterVideoWatchedPage().getListVideosDisplayed().add(0, video);
                             mActivity.getAdapterVideoWatchedPage().notifyDataSetChanged();
                         }
 
@@ -117,52 +139,58 @@ public class VideoPageFragment extends Fragment {
         //this.loadVideos();
 
         //We fetch the unplayed videos
-        List<UnplayedVideo> listUnplayedVideos = new ArrayList<UnplayedVideo>();
-        List<Video> listVideos = new ArrayList<Video>();
-        YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
-        try {
-            Dao<UnplayedVideo, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getUnplayedDao();
-            listUnplayedVideos = youtubeSubscriptionsTVDao.queryForAll();
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
-        }
+        UnplayedVideosService unplayedVideosService = new UnplayedVideosService(mActivity);
+        List<Video> listVideos = unplayedVideosService.fetchUnplayedVideos();
 
+        mActivity.getAdapterVideoPage().getListVideosDisplayed().addAll(listVideos);
+        this.loadNextDataFromApi(0);
+        //this.scrollListener.resetState();
+        mActivity.getAdapterVideoPage().notifyDataSetChanged();
+        mActivity.fab.setOnClickListener(new CallIntentListener(mActivity, mActivity.getFullUrl()));
+        return view;
+    }
 
-        //We sort the list
-        Collections.sort(listUnplayedVideos, new Comparator<UnplayedVideo>(){
-            public int compare(UnplayedVideo video1, UnplayedVideo video2) {
-                return video2.getDatePublished().compareTo(video1.getDatePublished());
+    // Append the next page of data into the adapter
+    // This method probably sends out a network request and appends new data items to your adapter.
+    public void loadNextDataFromApi(int offset) {
+        // Send an API request to retrieve appropriate paginated data
+        //  --> Send the request including an offset value (i.e `page`) as a query parameter.
+        //  --> Deserialize and construct new model objects from the API response
+        //  --> Append the new data objects to the existing set of items inside the array of items
+        //  --> Notify the adapter of the new items made with `notifyItemRangeInserted()`
+
+        ArrayList<Video> listVideos = mActivity.getAdapterVideoPage().getListVideos();
+        if (listVideos.isEmpty())
+            return;
+        int subListSizeToDisplay = 50;
+        if (listVideos.size()<subListSizeToDisplay)
+            subListSizeToDisplay = listVideos.size();
+
+        ArrayList<Video> videoToDisplay = new ArrayList<Video>(listVideos.subList(0, subListSizeToDisplay));
+        mActivity.getAdapterVideoPage().getListVideosDisplayed().addAll(videoToDisplay);
+        listVideos.subList(0, subListSizeToDisplay).clear();
+        // Delay before notifying the adapter since the scroll listeners
+        // can be called while RecyclerView data cannot be changed.
+        this.view.post(new Runnable() {
+            @Override
+            public void run() {
+                // Notify adapter with appropriate notify methods
+                //adapter.notifyItemRangeInserted(curSize, allContacts.size() - 1);
+                mActivity.getAdapterVideoPage().notifyDataSetChanged();
             }
         });
 
-        for (UnplayedVideo unplayedVideos : listUnplayedVideos) {
-            listVideos.add(new Video(unplayedVideos));
-        }
 
-        //We fetch and remove the played videos
-        List<Video> listPlayedVideos = new ArrayList<Video>();
-        try {
-            Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
-            listPlayedVideos = youtubeSubscriptionsTVDao.queryForAll();
-            listVideos.removeAll(listPlayedVideos);
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
-        }
-
-        mActivity.getAdapterVideoPage().getListVideos().addAll(listVideos);
-        mActivity.getAdapterVideoPage().notifyDataSetChanged();
-        mActivity.fab.setOnClickListener(new CallIntentListener(mActivity, mActivity.getFullUrl()));
-
-        return view;
     }
 
     public void fetchTimelineAsync(int page) {
         //we clean the unplayed video table and the adapter
-        //adapter.clear();
         final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
         youtubeSubscriptionsTVOpenDatabaseHelper.clearUnplayedVideoTable();
         mActivity.getAdapterVideoPage().clear();
         mActivity.getAdapterVideoPage().notifyDataSetChanged();
+        //Reset endless scroll listener when performing a new search
+        scrollListener.resetState();
         this.loadVideos();
     }
 

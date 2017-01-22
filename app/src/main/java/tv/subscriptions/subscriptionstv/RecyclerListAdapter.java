@@ -14,15 +14,26 @@ import java.util.ArrayList;
 public class RecyclerListAdapter extends RecyclerView.Adapter<ItemViewHolder> {
 
     private Context mContext;
+    private ArrayList<Video> listVideos = new ArrayList<Video>();
+    private ArrayList<Video> listVideosDisplayed = new ArrayList<Video>();
 
     public RecyclerListAdapter(Context context) {
         this.mContext = context;
     }
 
-    private ArrayList<Video> listVideos = new ArrayList<Video>();
+    public RecyclerListAdapter(Context context, boolean noScrollListener) {
+        this.mContext = context;
+        if (noScrollListener)
+            this.listVideosDisplayed = this.listVideos;
+    }
+
 
     public ArrayList<Video> getListVideos() {
         return listVideos;
+    }
+
+    public ArrayList<Video> getListVideosDisplayed() {
+        return listVideosDisplayed;
     }
 
     @Override
@@ -33,7 +44,9 @@ public class RecyclerListAdapter extends RecyclerView.Adapter<ItemViewHolder> {
 
     @Override
     public void onBindViewHolder(ItemViewHolder holder, int position) {
-        Video video = this.listVideos.get(position);
+        if(position>=this.listVideosDisplayed.size())
+            return;
+        Video video = this.listVideosDisplayed.get(position);
         holder.getTextView().setText(video.getTitle());
         holder.getChannelTitle().setText(video.getChannelTitle());
         //holder.textView.setBackgroundColor(Color.CYAN);
@@ -50,11 +63,12 @@ public class RecyclerListAdapter extends RecyclerView.Adapter<ItemViewHolder> {
 
     @Override
     public int getItemCount() {
-        return this.listVideos.size();
+        return this.listVideosDisplayed.size();
     }
 
     public void clear() {
         this.listVideos.clear();
+        this.listVideosDisplayed.clear();
         notifyDataSetChanged();
     }
 }

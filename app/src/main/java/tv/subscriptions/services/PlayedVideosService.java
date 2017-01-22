@@ -6,6 +6,7 @@ import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import tv.subscriptions.subscriptionstv.Video;
@@ -31,6 +32,17 @@ public class PlayedVideosService {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public List<Video> getAll() {
+        YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+        try {
+            Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
+            return youtubeSubscriptionsTVDao.queryForAll();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+            return new ArrayList<Video>();
         }
     }
 }

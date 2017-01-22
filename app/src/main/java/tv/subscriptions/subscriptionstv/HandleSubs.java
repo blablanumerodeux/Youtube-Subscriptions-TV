@@ -35,6 +35,8 @@ import butterknife.BindInt;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import tv.subscriptions.services.PlayedVideosService;
+import tv.subscriptions.services.UnplayedVideosService;
 
 import static tv.subscriptions.subscriptionstv.MainActivity.LOG_TAG;
 
@@ -100,9 +102,13 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
 
         if (userInfo != null) {
 
-            final Double numberOfpages = Math.ceil(userInfo.optJSONObject("pageInfo").optDouble("totalResults")/mMainActivity.getMaxResultsPerPageYTAPI());
+            Double numberOfpages = Math.ceil(userInfo.optJSONObject("pageInfo").optDouble("totalResults")/mMainActivity.getMaxResultsPerPageYTAPI());
             String nextPageToken = this.processPageSubscriptionsAndChannelIds(userInfo, listSubscribesIds, listSubscribesIdsMapNewActivityCount);
             Log.i(LOG_TAG, "Number of subs : "+userInfo.optJSONObject("pageInfo").optDouble("totalResults"));
+
+            Resources res = mMainActivity.getResources();
+            if(res.getBoolean(R.bool.debug))
+                numberOfpages = (double) res.getInteger(R.integer.numberOfPagesFetchedInDebugMode);
 
             for (int i = 1; i < numberOfpages; i++) {
 
@@ -162,28 +168,9 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
             }
         });
 
-        /*
-        //We fetch and remove the videos already played
-        if (!mMainActivity.getMydatabase().isOpen())
-            return;
-
-        Cursor resultSet = mMainActivity.getMydatabase().rawQuery("Select * from T_VIDEO_PLAYED",null);
-        ArrayList<Video> listPlayedVideos = new ArrayList<Video>();
-        for(resultSet.moveToFirst(); !resultSet.isAfterLast(); resultSet.moveToNext()) {
-            Video v = new Video();
-            v.setIdYT(resultSet.getString(0));
-            listPlayedVideos.add(v);
-        }*/
-        List<Video> listPlayedVideos = new ArrayList<Video>();
-        YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mMainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
-        try {
-            Dao<Video, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
-            listPlayedVideos = youtubeSubscriptionsTVDao.queryForAll();
-            listVideos.removeAll(listPlayedVideos);
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
-            return;
-        }
+        PlayedVideosService playedVideosService = new PlayedVideosService(mMainActivity);
+        List<Video> listPlayedVideos = playedVideosService.getAll();
+        listVideos.removeAll(listPlayedVideos);
 
         //Display the list
         //mMainActivity.mProgress.setProgress(100);
@@ -191,16 +178,11 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         //mMainActivity.fab.setVisibility(View.VISIBLE);
         mMainActivity.getAdapterVideoPage().getListVideos().addAll(listVideos);
 
-        try {
-            Dao<UnplayedVideo, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getUnplayedDao();
-            for (Video video: listVideos) {
-                UnplayedVideo unplayedVideo = new UnplayedVideo(video);
-                youtubeSubscriptionsTVDao.create(unplayedVideo);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        UnplayedVideosService unplayedVideosService = new UnplayedVideosService(mMainActivity);
+        boolean saved = unplayedVideosService.saveUnplayedVideos(listVideos);
 
+        //reload the ui
+        mMainActivity.videoPageFragment.loadNextDataFromApi(0);
         mMainActivity.getAdapterVideoPage().notifyDataSetChanged();
 
         mMainActivity.runOnUiThread(new Runnable() {
@@ -230,7 +212,7 @@ class CallIntentListener implements Button.OnClickListener {
 
         //We generate the titles list
         ArrayList<String> listAllIdsOfVideos = new ArrayList<String>();
-        ArrayList<Video> listVideosInAdapter = mMainActivity.getAdapterVideoPage().getListVideos();
+        ArrayList<Video> listVideosInAdapter = mMainActivity.getAdapterVideoPage().getListVideosDisplayed();
         for (Video v: listVideosInAdapter)
             listAllIdsOfVideos.add(v.getIdYT());
 

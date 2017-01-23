@@ -19,6 +19,8 @@
     <string name="dbName">youtubeSubscriptionsTV.db</string>
     <string name="watchedAllButton">Tout marquer comme vu</string>
     <string name="url_intent">http://www.youtube.com/watch_videos?video_ids=</string>
+    <string name="url_channel_rss_feed">https://www.youtube.com/feeds/videos.xml?channel_id=</string>
 
     <string name="err_empty_playlist">Playlist vide</string>
+    <string name="err_not_logged_in">You need to sign in to launch the playlist</string>
 </resources>

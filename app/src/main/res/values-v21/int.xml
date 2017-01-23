@@ -2,4 +2,5 @@
     <integer name="maxResultsPerPageYTAPI">50</integer>
     <integer name="numberOfPagesFetchedInDebugMode">2</integer><!--min 2-->
     <integer name="versionNumber">6</integer>
+    <integer name="numberOfVideosToLoad">50</integer>
 </resources>

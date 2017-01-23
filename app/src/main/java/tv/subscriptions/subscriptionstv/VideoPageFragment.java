@@ -25,6 +25,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import butterknife.BindInt;
+import butterknife.BindString;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import tv.subscriptions.services.UnplayedVideosService;
 
 import static tv.subscriptions.subscriptionstv.MainActivity.LOG_TAG;
@@ -33,8 +37,10 @@ public class VideoPageFragment extends Fragment {
 
     private RecyclerListAdapter adapter;
     private MainActivity mActivity;
-    private SwipeRefreshLayout swipeContainer;
+    @BindView(R.id.swipeContainer) SwipeRefreshLayout swipeContainer;
     private View view;
+    @BindString(R.string.err_not_logged_in) String errNotLoggedIn;
+    @BindInt(R.integer.numberOfVideosToLoad) int numberOfVideosToLoad;
     // Store a member variable for the listener
     private EndlessRecyclerViewScrollListener scrollListener;
 
@@ -50,6 +56,7 @@ public class VideoPageFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         this.view = inflater.inflate(R.layout.videos_page, container, false);
+        ButterKnife.bind(this, this.view);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_videos);
         this.mActivity = (MainActivity) getActivity();
         this.mActivity.setAdapterVideoPage(new RecyclerListAdapter(mActivity.getBaseContext()));
@@ -68,7 +75,7 @@ public class VideoPageFragment extends Fragment {
         };
         // Adds the scroll listener to RecyclerView
         recyclerView.addOnScrollListener(scrollListener);
-        swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
+        //swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -84,8 +91,7 @@ public class VideoPageFragment extends Fragment {
         mActivity.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO PUT THIS IN THE PROP
-                Snackbar.make(view, "You need to sign in to launch the playlist", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, errNotLoggedIn, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -142,7 +148,7 @@ public class VideoPageFragment extends Fragment {
         UnplayedVideosService unplayedVideosService = new UnplayedVideosService(mActivity);
         List<Video> listVideos = unplayedVideosService.fetchUnplayedVideos();
 
-        mActivity.getAdapterVideoPage().getListVideosDisplayed().addAll(listVideos);
+        mActivity.getAdapterVideoPage().getListVideos().addAll(listVideos);
         this.loadNextDataFromApi(0);
         //this.scrollListener.resetState();
         mActivity.getAdapterVideoPage().notifyDataSetChanged();
@@ -162,7 +168,7 @@ public class VideoPageFragment extends Fragment {
         ArrayList<Video> listVideos = mActivity.getAdapterVideoPage().getListVideos();
         if (listVideos.isEmpty())
             return;
-        int subListSizeToDisplay = 50;
+        int subListSizeToDisplay = numberOfVideosToLoad;
         if (listVideos.size()<subListSizeToDisplay)
             subListSizeToDisplay = listVideos.size();
 
@@ -217,6 +223,8 @@ public class VideoPageFragment extends Fragment {
                     swipeContainer.setRefreshing(false);
                 }
             });
+            Snackbar.make(view, errNotLoggedIn, Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
         }
     }
 

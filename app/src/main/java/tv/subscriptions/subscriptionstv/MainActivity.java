@@ -73,6 +73,10 @@ https://horaceheaven.com/android-ormlite-tutorial/
 http://ormlite.com/javadoc/ormlite-core/doc-files/ormlite_5.html#DAO-Methods
 https://guides.codepath.com/android/Endless-Scrolling-with-AdapterViews-and-RecyclerView#resetting-the-endless-scroll-state
 http://stackoverflow.com/questions/14678593/the-application-may-be-doing-too-much-work-on-its-main-thread
+http://stackoverflow.com/questions/17474818/difference-between-asynctask-and-thread-runnable
+http://stackoverflow.com/questions/1921514/how-to-run-a-runnable-thread-in-android
+http://stackoverflow.com/questions/13684468/java-runnable-run-method-returning-a-value
+http://blog.xebia.fr/2014/01/10/android-oubliez-definitivement-les-asynctask-avec-rxjava/
  */
 public class MainActivity extends AppCompatActivity {
 

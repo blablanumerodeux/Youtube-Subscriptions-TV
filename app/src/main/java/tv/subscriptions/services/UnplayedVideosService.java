@@ -60,18 +60,20 @@ public class UnplayedVideosService {
         return listVideos;
     }
 
-    public boolean saveUnplayedVideos(List<Video> listVideos) {
-        try {
-            YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(this.mainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
-            Dao<UnplayedVideo, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getUnplayedDao();
-            for (Video video: listVideos) {
-                UnplayedVideo unplayedVideo = new UnplayedVideo(video);
-                youtubeSubscriptionsTVDao.create(unplayedVideo);
+    public void saveUnplayedVideos(final List<Video> listVideos) {
+        final Runnable r = new Runnable() {
+            public void run() {
+                try {
+                    YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
+                    Dao<UnplayedVideo, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getUnplayedDao();
+                    for (Video video: listVideos) {
+                        UnplayedVideo unplayedVideo = new UnplayedVideo(video);
+                        youtubeSubscriptionsTVDao.create(unplayedVideo);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        };
     }
 }

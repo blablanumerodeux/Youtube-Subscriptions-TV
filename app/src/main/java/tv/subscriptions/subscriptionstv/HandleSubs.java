@@ -141,9 +141,11 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
             //Parse the sub rss feed
             final HandleXML handleXML = new HandleXML(listSubscribesIdsMapNewActivityCount);
             ExecutorService threadPool = Executors.newFixedThreadPool(mMainActivity.getMaxResultsPerPageYTAPI());
+            Resources res = mMainActivity.getResources();
+            String urlChannelRssFeed = res.getString(R.string.url_channel_rss_feed);
             for (String channelId : listSubscribesIds) {
                 //if (listSubscribesIdsMapNewActivityCount.get(channelId)>0){
-                    threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId, false));
+                    threadPool.submit(handleXML.fetchXML(urlChannelRssFeed + channelId, false));
                 //}else{
                     //threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId, true));
                 //}
@@ -179,7 +181,7 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         mMainActivity.getAdapterVideoPage().getListVideos().addAll(listVideos);
 
         UnplayedVideosService unplayedVideosService = new UnplayedVideosService(mMainActivity);
-        boolean saved = unplayedVideosService.saveUnplayedVideos(listVideos);
+        unplayedVideosService.saveUnplayedVideos(listVideos);
 
         //reload the ui
         mMainActivity.videoPageFragment.loadNextDataFromApi(0);

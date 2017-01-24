@@ -221,6 +221,8 @@ class CallIntentListener implements Button.OnClickListener {
         List<Video> list50FirstTitlesOfVideos = new ArrayList<Video>();
         Resources res = mMainActivity.getResources();
         int maxResultsPerPageYTAPI = res.getInteger(R.integer.maxResultsPerPageYTAPI);
+        if (mMainActivity.playlistSize>0 && mMainActivity.playlistSize<=50)
+            maxResultsPerPageYTAPI = mMainActivity.playlistSize;
 
         if (listVideosInAdapter == null || listVideosInAdapter.size()==0) {
             mMainActivity.runOnUiThread(new Runnable() {

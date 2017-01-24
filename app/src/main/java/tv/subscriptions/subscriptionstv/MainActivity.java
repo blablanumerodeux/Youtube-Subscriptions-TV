@@ -1,5 +1,6 @@
 package tv.subscriptions.subscriptionstv;
 
+import android.content.DialogInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -18,6 +19,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
@@ -27,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
@@ -99,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
     private String fullUrl;
     @BindString(R.string.api_key) String apiKey;
     @BindInt(R.integer.maxResultsPerPageYTAPI) int maxResultsPerPageYTAPI;
+    int playlistSize;
     //private SQLiteDatabase mydatabase;
     AuthorizationService authorizationService;
     // state
@@ -212,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
                     signOutListener.onClick(findViewById(R.id.signOut));
                     return true;
                 case R.id.emptyDbButton:
-                    adapterVideoPage.getListVideosDisplayed().addAll(adapterVideoWatchedPage.getListVideos());
+                    adapterVideoPage.getListVideosDisplayed().addAll(0, adapterVideoWatchedPage.getListVideos());
                     final YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(this, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                     youtubeSubscriptionsTVOpenDatabaseHelper.clearTable();
                     adapterVideoWatchedPage.getListVideos().clear();
@@ -220,6 +224,35 @@ public class MainActivity extends AppCompatActivity {
                     if (adapterVideoPage != null){
                         adapterVideoPage.notifyDataSetChanged();
                     }
+                    return true;
+                case R.id.playlistSize:
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle(R.string.playlistSize);
+                    builder.setItems(new CharSequence[]
+                                    {getString(R.string.playlistSize10), getString(R.string.playlistSize20), getString(R.string.playlistSize30), getString(R.string.playlistSize40), getString(R.string.playlistSize50)},
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which) {
+                                        case 0:
+                                            playlistSize = 10;
+                                            break;
+                                        case 1:
+                                            playlistSize = 20;
+                                            break;
+                                        case 2:
+                                            playlistSize = 30;
+                                            break;
+                                        case 3:
+                                            playlistSize = 40;
+                                            break;
+                                        case 4:
+                                            playlistSize = 50;
+                                            break;
+                                    }
+                                }
+                            });
+                    builder.setCancelable(true);
+                    builder.create().show();
                     return true;
                 case R.id.watchedAllButton:
                     final MainActivity mainActivity = this;

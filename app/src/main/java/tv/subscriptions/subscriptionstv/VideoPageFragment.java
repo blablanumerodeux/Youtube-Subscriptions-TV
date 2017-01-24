@@ -147,10 +147,12 @@ public class VideoPageFragment extends Fragment {
         //We fetch the unplayed videos
         UnplayedVideosService unplayedVideosService = new UnplayedVideosService(mActivity);
         List<Video> listVideos = unplayedVideosService.fetchUnplayedVideos();
+        if (listVideos.isEmpty())
+            this.fetchTimelineAsync(0);
 
         mActivity.getAdapterVideoPage().getListVideos().addAll(listVideos);
         this.loadNextDataFromApi(0);
-        //this.scrollListener.resetState();
+        this.scrollListener.resetState();
         mActivity.getAdapterVideoPage().notifyDataSetChanged();
         mActivity.fab.setOnClickListener(new CallIntentListener(mActivity, mActivity.getFullUrl()));
         return view;

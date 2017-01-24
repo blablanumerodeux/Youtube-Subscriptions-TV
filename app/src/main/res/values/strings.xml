@@ -18,6 +18,13 @@
     <string name="cancel">Annuler</string>
     <string name="dbName">youtubeSubscriptionsTV.db</string>
     <string name="watchedAllButton">Tout marquer comme vu</string>
+    <string name="playlistSize">Taille de la playlist</string>
+    <string name="playlistSize10">10</string>
+    <string name="playlistSize20">20</string>
+    <string name="playlistSize30">30</string>
+    <string name="playlistSize40">40</string>
+    <string name="playlistSize50">50</string>
+    <string name="ok">Ok</string>
     <string name="url_intent">http://www.youtube.com/watch_videos?video_ids=</string>
     <string name="url_channel_rss_feed">https://www.youtube.com/feeds/videos.xml?channel_id=</string>
 

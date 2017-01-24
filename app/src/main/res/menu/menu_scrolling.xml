@@ -33,4 +33,10 @@
         android:title="@string/watchedAllButton"
         android:visible="true"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/playlistSize"
+        android:orderInCategory="500"
+        android:title="@string/playlistSize"
+        android:visible="true"
+        app:showAsAction="never" />
 </menu>

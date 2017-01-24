@@ -39,6 +39,7 @@ public class SetLastPlaylistAsWatchedDialogFragment extends DialogFragment {
                                 }
                                 mainActivity.getAdapterVideoPage().getListVideosDisplayed().removeAll(playlist);
                                 mainActivity.getAdapterVideoWatchedPage().getListVideos().addAll(0, playlist);
+                                mainActivity.videoPageFragment.loadNextDataFromApi(0);
                                 mainActivity.getAdapterVideoPage().notifyDataSetChanged();
                                 if (mainActivity.getAdapterVideoWatchedPage()!=null)
                                     mainActivity.getAdapterVideoWatchedPage().notifyDataSetChanged();

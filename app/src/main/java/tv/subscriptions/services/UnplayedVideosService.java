@@ -1,6 +1,8 @@
 package tv.subscriptions.services;
 
 import android.app.Activity;
+import android.os.AsyncTask;
+import android.support.v4.widget.SwipeRefreshLayout;
 
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
@@ -11,6 +13,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import tv.subscriptions.subscriptionstv.MainActivity;
 import tv.subscriptions.subscriptionstv.UnplayedVideo;
 import tv.subscriptions.subscriptionstv.Video;
 import tv.subscriptions.subscriptionstv.YoutubeSubscriptionsTVOpenDatabaseHelper;
@@ -18,9 +21,9 @@ import tv.subscriptions.subscriptionstv.YoutubeSubscriptionsTVOpenDatabaseHelper
 //TODO MIGRATE TO SERVICES WHEN POSSIBLE !
 public class UnplayedVideosService {
 
-    private Activity mainActivity;
+    private MainActivity mainActivity;
 
-    public UnplayedVideosService(Activity mainActivity) {
+    public UnplayedVideosService(MainActivity mainActivity) {
         this.mainActivity=mainActivity;
     }
 
@@ -61,8 +64,10 @@ public class UnplayedVideosService {
     }
 
     public void saveUnplayedVideos(final List<Video> listVideos) {
-        final Runnable r = new Runnable() {
-            public void run() {
+
+        new AsyncTask<Object, Void, Void>() {
+            @Override
+            protected Void doInBackground(Object... params) {
                 try {
                     YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                     Dao<UnplayedVideo, Long> youtubeSubscriptionsTVDao = youtubeSubscriptionsTVOpenDatabaseHelper.getUnplayedDao();
@@ -73,7 +78,13 @@ public class UnplayedVideosService {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
+                return null;
             }
-        };
+
+            @Override
+            protected void onPostExecute(Void params) {
+                mainActivity.getVideoPageFragment().getSwipeContainer().setRefreshing(false);
+            }
+        }.execute(mainActivity);
     }
 }

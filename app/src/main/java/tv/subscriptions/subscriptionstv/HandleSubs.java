@@ -187,12 +187,12 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         mMainActivity.videoPageFragment.loadNextDataFromApi(0);
         mMainActivity.getAdapterVideoPage().notifyDataSetChanged();
 
-        mMainActivity.runOnUiThread(new Runnable() {
+        /*mMainActivity.runOnUiThread(new Runnable() {
             public void run() {
                 swipeContainer.setRefreshing(false);
             }
         });
-
+*/
         //manage the intent button
         mMainActivity.fab.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.getFullUrl()));
         //Log.i(LOG_TAG, "onPostExecute "+ Looper.myLooper().getThread().getName());

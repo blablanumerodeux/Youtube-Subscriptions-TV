@@ -77,6 +77,7 @@ http://stackoverflow.com/questions/17474818/difference-between-asynctask-and-thr
 http://stackoverflow.com/questions/1921514/how-to-run-a-runnable-thread-in-android
 http://stackoverflow.com/questions/13684468/java-runnable-run-method-returning-a-value
 http://blog.xebia.fr/2014/01/10/android-oubliez-definitivement-les-asynctask-avec-rxjava/
+http://stackoverflow.com/questions/16765415/should-i-give-params-to-the-constructor-or-to-asynctask-executeparams
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -386,6 +387,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void setPlaylist(List<Video> playlist) {
         this.playlist = playlist;
+    }
+
+    public VideoPageFragment getVideoPageFragment() {
+        return videoPageFragment;
+    }
+
+    public VideoWatchedPageFragment getVideoWatchedPageFragment() {
+        return videoWatchedPageFragment;
     }
 
     /**

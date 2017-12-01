@@ -75,7 +75,6 @@ public class VideoPageFragment extends Fragment {
         };
         // Adds the scroll listener to RecyclerView
         recyclerView.addOnScrollListener(scrollListener);
-        //swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -101,9 +100,6 @@ public class VideoPageFragment extends Fragment {
 
                     @Override
                     public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                        // move item in `fromPos` to `toPos` in adapter.
-                        //final int fromPos = viewHolder.getAdapterPosition();
-                        //final int toPos = target.getAdapterPosition();
                         Log.i(LOG_TAG, "moving items is disabled !!! ");
                         return true;// true if moved, false otherwise
                     }
@@ -129,8 +125,6 @@ public class VideoPageFragment extends Fragment {
                             mActivity.getAdapterVideoWatchedPage().notifyDataSetChanged();
                         }
 
-                        //mActivity.getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+idRemovedVideo+"', '"+ TextUtils.htmlEncode(title)+"', '"+thumbnailsUrl+"', '"+TextUtils.htmlEncode(channelTitle)+"');");
-
                         YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                         try {
                             Dao<Video, Long> youtubeSubscriptionsTVDao= youtubeSubscriptionsTVOpenDatabaseHelper.getDao();
@@ -142,7 +136,6 @@ public class VideoPageFragment extends Fragment {
                     }
                 });
         mIth.attachToRecyclerView(recyclerView);
-        //this.loadVideos();
 
         //We fetch the unplayed videos
         UnplayedVideosService unplayedVideosService = new UnplayedVideosService(mActivity);
@@ -183,7 +176,6 @@ public class VideoPageFragment extends Fragment {
             @Override
             public void run() {
                 // Notify adapter with appropriate notify methods
-                //adapter.notifyItemRangeInserted(curSize, allContacts.size() - 1);
                 mActivity.getAdapterVideoPage().notifyDataSetChanged();
             }
         });

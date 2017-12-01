@@ -347,8 +347,6 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         super.onDestroy();
         this.authorizationService.dispose();
-        /*if (mydatabase.isOpen())
-            mydatabase.close();*/
         Log.i(LOG_TAG, "- ON DESTROY -");
     }
 
@@ -385,10 +383,6 @@ public class MainActivity extends AppCompatActivity {
     public int getMaxResultsPerPageYTAPI() {
         return maxResultsPerPageYTAPI;
     }
-
-    /*public SQLiteDatabase getMydatabase() {
-        return mydatabase;
-    }*/
 
     public RecyclerListAdapter getAdapterVideoPage() {
         return adapterVideoPage;
@@ -527,7 +521,6 @@ public class MainActivity extends AppCompatActivity {
                         if (tokenResponse != null) {
                             authState.update(tokenResponse, exception);
                             persistAuthState(authState);
-                            //loadVideos();
                             enablePostAuthorizationFlows();
                             Log.i(LOG_TAG, String.format("Token Response [ Access Token: %s, ID Token: %s ]", tokenResponse.accessToken, tokenResponse.idToken));
                         }

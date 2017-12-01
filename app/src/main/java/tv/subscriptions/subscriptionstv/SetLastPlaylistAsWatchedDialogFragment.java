@@ -35,7 +35,6 @@ public class SetLastPlaylistAsWatchedDialogFragment extends DialogFragment {
                                     if (youtubeSubscriptionsTVDao.queryBuilder().where().eq("idYT", video.getIdYT()).countOf() > 0)
                                         continue;
                                     youtubeSubscriptionsTVDao.create(video);
-                                    //((MainActivity) getActivity()).getMydatabase().execSQL("INSERT INTO T_VIDEO_PLAYED VALUES('"+video.getIdYT()+"', '"+ TextUtils.htmlEncode(video.getTitle())+"', '"+video.getThumbnailsUrl()+"', '"+TextUtils.htmlEncode(video.getChannelTitle())+"');");
                                 }
                                 mainActivity.getAdapterVideoPage().getListVideosDisplayed().removeAll(playlist);
                                 mainActivity.getAdapterVideoWatchedPage().getListVideos().addAll(0, playlist);

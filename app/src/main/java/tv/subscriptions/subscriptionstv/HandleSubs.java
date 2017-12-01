@@ -58,13 +58,11 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         JSONArray listSubscribes = (JSONArray) userInfo.optJSONArray("items");
         for (int j = 0; j < listSubscribes.length(); j++){
             String channelId = listSubscribes.optJSONObject(j).optJSONObject("snippet").optJSONObject("resourceId").optString("channelId");
-            //int newItemCount = listSubscribes.optJSONObject(j).optJSONObject("contentDetails").optInt("newItemCount");
             if (channelId.isEmpty()){
                 channelId= "EMPTY CHANNEL ID";
                 Log.w(LOG_TAG, "EMPTY CHANNEL ID !");
             }
             listSubscribesIds.add(channelId);
-            //listSubscribesIdsMap.put(channelId, newItemCount);
         }
         return nextPageToken;
     }
@@ -117,15 +115,7 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
                 nextPageToken = this.processPageSubscriptionsAndChannelIds(userInfo, listSubscribesIds, listSubscribesIdsMapNewActivityCount);
 
                 final int progressStatus = (int) (((100*(i+1))/numberOfpages)-10);
-                /*mMainActivity.runOnUiThread(new Runnable() {
-                    public void run() {
-                        mMainActivity.mProgress.setProgress(progressStatus);
-                    }
-                });*/
                 Log.i(LOG_TAG, "page : "+ (i+1) + "/"+numberOfpages+"; nextPageToken : "+nextPageToken);
-                //Log.i(LOG_TAG, "taille de la liste recu : "+listSubscribes.length());
-                //Log.i(LOG_TAG, "taille de la liste : "+listSubscribesIds.size());
-                //Youtube do not return always the exact numbers of subs asked. Don't know why...
             }
         }
     }
@@ -144,11 +134,7 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
             Resources res = mMainActivity.getResources();
             String urlChannelRssFeed = res.getString(R.string.url_channel_rss_feed);
             for (String channelId : listSubscribesIds) {
-                //if (listSubscribesIdsMapNewActivityCount.get(channelId)>0){
-                    threadPool.submit(handleXML.fetchXML(urlChannelRssFeed + channelId, false));
-                //}else{
-                    //threadPool.submit(handleXML.fetchXML("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId, true));
-                //}
+                threadPool.submit(handleXML.fetchXML(urlChannelRssFeed + channelId, false));
             }
             threadPool.shutdown();
             threadPool.awaitTermination(5, TimeUnit.MINUTES);
@@ -175,9 +161,6 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         listVideos.removeAll(listPlayedVideos);
 
         //Display the list
-        //mMainActivity.mProgress.setProgress(100);
-        //mMainActivity.mProgress.setVisibility(View.GONE);
-        //mMainActivity.fab.setVisibility(View.VISIBLE);
         mMainActivity.getAdapterVideoPage().getListVideos().addAll(listVideos);
 
         UnplayedVideosService unplayedVideosService = new UnplayedVideosService(mMainActivity);
@@ -187,15 +170,8 @@ class HandleSubs extends AsyncTask<String, Void, List<Video>> {
         mMainActivity.videoPageFragment.loadNextDataFromApi(0);
         mMainActivity.getAdapterVideoPage().notifyDataSetChanged();
 
-        /*mMainActivity.runOnUiThread(new Runnable() {
-            public void run() {
-                swipeContainer.setRefreshing(false);
-            }
-        });
-*/
         //manage the intent button
         mMainActivity.fab.setOnClickListener(new CallIntentListener(mMainActivity, mMainActivity.getFullUrl()));
-        //Log.i(LOG_TAG, "onPostExecute "+ Looper.myLooper().getThread().getName());
     }
 }
 
@@ -245,9 +221,6 @@ class CallIntentListener implements Button.OnClickListener {
         mMainActivity.setPlaylist(list50FirstTitlesOfVideos);
 
         //the youtube player api doesn't work when we try to open multiple videos
-        //Intent intent = YouTubeIntents.createPlayVideoIntent(mMainActivity, url);//"a4NT5iBFuZs");
-        //mMainActivity.startActivity(intent);
-
         //so we use the browser to generate a anonymous playlist and play it (youtube can create a 50 videos playlist max)
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(mMainActivity.getString(R.string.url_intent)+ url));// +",a4NT5iBFuZs"

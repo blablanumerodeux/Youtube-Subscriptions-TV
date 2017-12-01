@@ -76,7 +76,6 @@ public class VideoWatchedPageFragment extends Fragment {
                             mMainActivity.getAdapterVideoPage().getListVideosDisplayed().add(0, videoToRemove);
                             mMainActivity.getAdapterVideoPage().notifyDataSetChanged();
                         }
-                        //mMainActivity.getMydatabase().execSQL("DELETE FROM T_VIDEO_PLAYED WHERE VideoId='"+idRemovedVideo+"';");
 
                         YoutubeSubscriptionsTVOpenDatabaseHelper youtubeSubscriptionsTVOpenDatabaseHelper = OpenHelperManager.getHelper(mMainActivity, YoutubeSubscriptionsTVOpenDatabaseHelper.class);
                         try {
@@ -119,20 +118,6 @@ public class VideoWatchedPageFragment extends Fragment {
             }
         });
 
-
-        /*Cursor resultSet = mMainActivity.getMydatabase().rawQuery("Select * from T_VIDEO_PLAYED",null);
-        for(resultSet.moveToFirst(); !resultSet.isAfterLast(); resultSet.moveToNext()) {
-            Video v = new Video();
-            try {
-                v.setIdYT(resultSet.getString(0));
-                v.setTitle(resultSet.getString(1));
-                v.setThumbnailsUrl(resultSet.getString(2));
-                v.setChannelTitle(resultSet.getString(3));
-                listPlayedVideos.add(v);
-            }catch (Exception e){
-                Log.e(LOG_TAG, "An error occured while fetching the data.");
-            }
-        }*/
         this.adapter.getListVideos().addAll(listPlayedVideos);
         this.adapter.notifyDataSetChanged();
         mMainActivity.runOnUiThread(new Runnable() {
@@ -143,7 +128,6 @@ public class VideoWatchedPageFragment extends Fragment {
     }
 
     public void fetchTimelineAsync(int page) {
-        //adapter.clear();
         this.adapter.clear();
         this.adapter.notifyDataSetChanged();
         this.loadVideos();

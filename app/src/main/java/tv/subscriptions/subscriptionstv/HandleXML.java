@@ -83,21 +83,13 @@ public class HandleXML {
                             try{
                                 Date d = sdf.parse(text);
                                 v.setDatePublished(d);
-                                //Log.i("APP",d.toString());
                             }catch(ParseException e){
                                 e.printStackTrace();
                             }
                         }
                         else if(name.equals("media:thumbnail")){
                             v.setThumbnailsUrl(attributZero);
-
-                            //if (storeInAlreadyWatched){
-                                //add the video in the database
-                            //}else {
-                                this.addVideo(v);
-                            //}
-                            //we take only the first video
-                            //return;
+                            this.addVideo(v);
                         }
 
                         break;
